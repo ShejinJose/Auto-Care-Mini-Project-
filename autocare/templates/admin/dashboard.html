@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: #343a40;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            height: 100vh;
+        }
+        .sidebar h4 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .sidebar a {
+            color: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #495057;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .navbar {
+            background-color: #343a40;
+            color: white;
+            padding: 1rem;
+        }
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .modal-content {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4>Admin Dashboard</h4>
+        <a href="#dashboard" class="active">Dashboard</a>
+        <a href="#customers">Manage Customers</a>
+        <a href="#vehicles">Manage Vehicles</a>
+        <a href="#appointments">Manage Appointments</a>
+        <a href="#services">Manage Services</a>
+        <a href="#users">Manage Users</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <a class="navbar-brand" href="#">Auto Workshop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Dashboard Content -->
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <!-- Dashboard Overview -->
+                <div class="col-md-12">
+                    <h2 class="mb-4">Welcome, Admin</h2>
+                    <p>This is your dashboard where you can manage the auto workshop.</p>
+                </div>
+            </div>
+
+            <!-- Section Cards -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-4">
+                        <div class="card-header">Customers</div>
+                        <div class="card-body">
+                            <h5 class="card-title">Manage Customers</h5>
+                            <p class="card-text">View, add, or remove customers.</p>
+                            <a href="#customers" class="btn btn-light">Go to Customers</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-4">
+                        <div class="card-header">Vehicles</div>
+                        <div class="card-body">
+                            <h5 class="card-title">Manage Vehicles</h5>
+                            <p class="card-text">View and manage customer vehicles.</p>
+                            <a href="#vehicles" class="btn btn-light">Go to Vehicles</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-4">
+                        <div class="card-header">Appointments</div>
+                        <div class="card-body">
+                            <h5 class="card-title">Manage Appointments</h5>
+                            <p class="card-text">Schedule and manage appointments.</p>
+                            <a href="#appointments" class="btn btn-light">Go to Appointments</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger mb-4">
+                        <div class="card-header">Services</div>
+                        <div class="card-body">
+                            <h5 class="card-title">Manage Services</h5>
+                            <p class="card-text">Add and update services offered.</p>
+                            <a href="#services" class="btn btn-light">Go to Services</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Charts or Other Content Here -->
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">Workshop Statistics</div>
+                        <div class="card-body">
+                            <canvas id="workshopChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">Recent Activity</div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item">Customer John Doe registered.</li>
+                                <li class="list-group-item">Vehicle serviced: Toyota Camry.</li>
+                                <li class="list-group-item">Appointment booked for 15th June.</li>
+                                <li class="list-group-item">Service plan updated for customer Jane.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Example Chart.js usage for the dashboard
+        var ctx = document.getElementById('workshopChart').getContext('2d');
+        var workshopChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                datasets: [{
+                    label: 'Services Completed',
+                    data: [10, 20, 15, 30, 40, 25],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

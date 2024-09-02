@@ -23,9 +23,9 @@ def cust_login(request) :
                 messages.success(request, 'Successfully logged in.')
                 if user.role == 'admin':
                     return redirect('admin/')
-                elif user.role == 'manager':
-                    return redirect('manager')
-                elif user.role == 'mechanics':
+                elif user.role == 'service_manager':
+                    return redirect('serviceManager/')
+                elif user.role == 'mechanic':
                      return redirect('mechanics')
                 elif user.role == 'customer':
                      return redirect('home')
@@ -52,8 +52,9 @@ def cust_register(request) :
             details = details_form.save(commit=False)
             details.user = user
             details.save()
+            messages.success(request, 'Registered Successfully.')
             login(request, user)
-            return redirect('home')  
+            return redirect('customerLogin')  
     else:
         user_form = CustomUserCreationForm()
         details_form = UserDetailsForm()
@@ -63,7 +64,7 @@ def cust_register(request) :
 def logout_view(request):
     logout(request)
     messages.success(request, 'Successfully logged out.')
-    return redirect('customerLogin')
+    return redirect('home')
 
 def price(request) :
     return render(request,"price.html")
@@ -78,3 +79,40 @@ def location(request) :
 
 def cst_admin(request):
     return render(request,'admin/dashboard.html')
+
+
+
+#/////////////////Service Manager Dashboard/////////////////////////
+def serviceManager(request):
+    return render(request,'serviceManager\managerhome.html')
+"""
+from django.shortcuts import render, redirect
+from .models import Customer, Mechanic, Feedback, Complaint
+from .forms import AlertForm
+
+def service_manager_dashboard(request):
+    customers = Customer.objects.all()
+    mechanics = Mechanic.objects.all()
+    feedbacks = Feedback.objects.all()
+    complaints = Complaint.objects.all()
+
+    if request.method == 'POST':
+        alert_form = AlertForm(request.POST)
+        if alert_form.is_valid():
+            alert_form.save()  # Save the alert and notify the mechanic
+            messages.success(request, 'Alert sent successfully!')
+            return redirect('service_manager_dashboard')
+    else:
+        alert_form = AlertForm()
+
+    context = {
+        'customers': customers,
+        'mechanics': mechanics,
+        'feedbacks': feedbacks,
+        'complaints': complaints,
+        'alert_form': alert_form,
+    }
+    
+    return render(request, 'service_manager_dashboard.html', context)
+
+"""

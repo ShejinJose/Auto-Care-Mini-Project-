@@ -9,6 +9,7 @@ urlpatterns = [
     path('contact',views.contact,name='contact'),
     path('customerLogin',views.cust_login,name='customerLogin'),
     path('customerRegister',views.cust_register,name='customerRegister'),
+    path('add_vehicle', views.add_vehicle, name='add_vehicle'),
     path('logout',views.logout_view,name="logout"),
     path('location',views.location,name="location"),
     path('price',views.price),
@@ -24,4 +25,5 @@ urlpatterns = [
     path('mechanic_list/', views.mechanic_list, name='mechanic_list'),
     path('delete_mechanic/<str:email>/', views.delete_mechanic, name='delete_mechanic'),
     path('add_mechanic/', views.add_mechanic, name='add_mechanic'),
+
 ]

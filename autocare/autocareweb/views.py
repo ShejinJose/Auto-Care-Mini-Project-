@@ -1,10 +1,10 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
-from .form import CustomUserCreationForm, UserDetailsForm
+from .form import CustomUserCreationForm, UserDetailsForm,  VehicleForm
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import CustomUser, UserDetails
+from .models import CustomUser, UserDetails, Vehicle
 
 # Create your views here.
 def home(request):
@@ -55,11 +55,26 @@ def cust_register(request) :
             details.save()
             messages.success(request, 'Registered Successfully.')
             login(request, user)
-            return redirect('customerLogin')  
+            return redirect('add_vehicle')  
     else:
         user_form = CustomUserCreationForm()
         details_form = UserDetailsForm()
     return render(request,"cust_register.html",{'user_form': user_form, 'details_form': details_form})
+
+
+#///////////////////////////   ADD VEHICLES   /////////////////////////////////////////////
+
+def add_vehicle(request):
+    if request.method == 'POST':
+        form = VehicleForm(request.POST)
+        if form.is_valid():
+            vehicle = form.save(commit=False)
+            vehicle.owner = request.user
+            vehicle.save()
+            return redirect('customerLogin')  # Redirect to the list of vehicles after successful submission
+    else:
+        form = VehicleForm()
+    return render(request, 'add_vehicle.html', {'form': form})
 
 
 def logout_view(request):

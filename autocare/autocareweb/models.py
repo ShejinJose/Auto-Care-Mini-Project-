@@ -50,3 +50,22 @@ class UserDetails(models.Model):
 
     def __str__(self):
         return self.name
+
+####//////////Vehicle details//////////////////
+class Vehicle(models.Model):
+    VEHICLE_TYPE_CHOICES = [
+        ('car', 'Car'),
+        ('bike', 'Bike'),
+        # Add more types if needed
+    ]
+
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='vehicles')
+    vehicle_type = models.CharField(max_length=10, choices=VEHICLE_TYPE_CHOICES)
+    vehicle_brand = models.CharField(max_length=50)
+    vehicle_variant = models.CharField(max_length=50)
+    vehicle_number = models.CharField(max_length=20, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.vehicle_type}{self.vehicle_brand} {self.vehicle_variant} ({self.vehicle_number})"

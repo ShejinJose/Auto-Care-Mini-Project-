@@ -2054,3 +2054,12 @@ a:focus {
 .footer .copyright p a:hover {
     color: #ffffff;
 }
+
+
+.service .row .col-lg-3 col-md-6 .service-item img {
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 45px; 
+}

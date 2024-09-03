@@ -195,36 +195,7 @@
             </div>
         </div>
 
-        <!-- Send Alert Section -->
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <h3>Send Alert to Mechanics</h3>
-                    </div>
-                    <div class="card-body">
-                        <form action="{% url 'send_alert' %}" method="post">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label for="mechanicSelect" class="form-label">Select Mechanic</label>
-                                <select id="mechanicSelect" class="form-select" name="mechanic_id" required>
-                                    <!-- Placeholder data, replace with dynamic content -->
-                                    <option value="1">Mike Johnson</option>
-                                    <option value="2">Sarah Lee</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="alertMessage" class="form-label">Message</label>
-                                <textarea id="alertMessage" class="form-control" name="message" rows="3" required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Send Alert</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+       
     <div class="footer">
         &copy; 2024 Auto Workshop Management System. All rights reserved.
     </div>

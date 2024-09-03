@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 class UserRole(models.TextChoices):
     ADMIN = 'admin', _('Admin')
-    SERVICE_MANAGER = 'service_manager', _('Service Manager')
+    SERVICE_MANAGER = 'service_manager', _('ServiceManager')
     MECHANIC = 'mechanic', _('Mechanic')
     CUSTOMER = 'customer', _('Customer')
 

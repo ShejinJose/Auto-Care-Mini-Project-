@@ -1,9 +1,10 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from .form import CustomUserCreationForm, UserDetailsForm
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+from .models import CustomUser, UserDetails
 
 # Create your views here.
 def home(request):
@@ -22,9 +23,9 @@ def cust_login(request) :
                 login(request, user)
                 messages.success(request, 'Successfully logged in.')
                 if user.role == 'admin':
-                    return redirect('admin/')
+                    return redirect('cst_admin')
                 elif user.role == 'service_manager':
-                    return redirect('serviceManager/')
+                    return redirect('serviceManager')
                 elif user.role == 'mechanic':
                      return redirect('mechanics')
                 elif user.role == 'customer':
@@ -73,7 +74,6 @@ def service(request) :
 def booking(request) :
     return render(request,"booking.html")
 def location(request) :
-
     return render(request,"location.html")
 
 
@@ -84,7 +84,8 @@ def cst_admin(request):
 
 #/////////////////Service Manager Dashboard/////////////////////////
 def serviceManager(request):
-    return render(request,'serviceManager\managerhome.html')
+    
+    return render(request,'serviceManager/managerhome.html')
 """
 from django.shortcuts import render, redirect
 from .models import Customer, Mechanic, Feedback, Complaint
@@ -116,3 +117,18 @@ def service_manager_dashboard(request):
     return render(request, 'service_manager_dashboard.html', context)
 
 """
+
+def customerdetails(request):
+
+    customers = CustomUser.objects.filter(role='customer').select_related('details')
+    return render(request,'admin/customerdetails.html',{'customers':customers})
+
+def delete_customer(request, email):
+    customer = get_object_or_404(CustomUser, email=email)
+    if request.method == "POST":
+        customer.delete()
+        return redirect('customerdetails')
+    return render(request, 'customerdetails')
+# def user_list(request):
+#     users = CustomUser.objects.all()  # Fetch all user records from the database
+#     return render(request, 'customerdetails.html', {'users': users})

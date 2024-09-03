@@ -111,9 +111,9 @@
     <div class="sidebar">
         <h4>Admin Dashboard</h4>
         <a href="#dashboard" class="active">Dashboard</a>
-        <a href="#customers">Manage Customers</a>
-        <a href="#vehicles">Manage Service Managers</a>
-        <a href="#appointments">Manage Mechanics</a>
+        <a href="{% url 'customerdetails' %}">Manage Customers</a>
+        <a href="{% url 'service_manager_list' %}">Manage Service Managers</a>
+        <a href="{% url 'mechanic_list' %}">Manage Mechanics</a>
         <a href="#services">Manage Services</a>
     </div>
 
@@ -169,7 +169,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Manage Service Manager</h5>
                             <p class="card-text">View and manage Service Manager.</p>
-                            <a href="#vehicles" class="btn btn-light">Go to Service Manager</a>
+                            <a href="{% url 'service_manager_list' %}" class="btn btn-light">Go to Service Manager</a>
                         </div>
                     </div>
                 </div>
@@ -179,7 +179,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Manage Mechanics</h5>
                             <p class="card-text">View and manage Mechanics</p>
-                            <a href="#appointments" class="btn btn-light">Go to Mechanics</a>
+                            <a href="{% url 'mechanic_list' %}" class="btn btn-light">Go to Mechanics</a>
                         </div>
                     </div>
                 </div>

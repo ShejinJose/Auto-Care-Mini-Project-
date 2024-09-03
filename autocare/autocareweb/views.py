@@ -117,11 +117,13 @@ def service_manager_dashboard(request):
     return render(request, 'service_manager_dashboard.html', context)
 
 """
+#/////////Customer details in Admin Page/////////////////////////////
 
 def customerdetails(request):
 
     customers = CustomUser.objects.filter(role='customer').select_related('details')
     return render(request,'admin/customerdetails.html',{'customers':customers})
+
 
 def delete_customer(request, email):
     customer = get_object_or_404(CustomUser, email=email)
@@ -129,6 +131,64 @@ def delete_customer(request, email):
         customer.delete()
         return redirect('customerdetails')
     return render(request, 'customerdetails')
-# def user_list(request):
-#     users = CustomUser.objects.all()  # Fetch all user records from the database
-#     return render(request, 'customerdetails.html', {'users': users})
+
+#/////////Service Manager details in Admin Page/////////////////////////////
+
+
+def service_manager_list(request):
+    managers = CustomUser.objects.filter(role='service_manager')  # Filter service managers
+    return render(request, 'admin/service_manager_list.html', {'managers': managers})
+
+def delete_service_manager(request, email):
+    manager = get_object_or_404(CustomUser, email=email, role='service_manager')
+    if request.method == "POST":
+        manager.delete()
+        return redirect('service_manager_list')
+    return redirect('service_manager_list')
+
+def add_service_manager(request) :
+    if request.method == 'POST':
+        user_form = CustomUserCreationForm(request.POST)
+        details_form = UserDetailsForm(request.POST)
+        if user_form.is_valid() and details_form.is_valid():
+            user = user_form.save()
+            details = details_form.save(commit=False)
+            details.user = user
+            details.save()
+            messages.success(request, 'Registered Successfully.')
+            return redirect('service_manager_list')  
+    else:
+        user_form = CustomUserCreationForm()
+        details_form = UserDetailsForm()
+    return render(request,"admin/add_service_manager.html",{'user_form': user_form, 'details_form': details_form})
+
+
+#/////////Mechanics details in Admin Page/////////////////////////////
+
+
+def mechanic_list(request):
+    mechanics = CustomUser.objects.filter(role='mechanic')  # Filter service managers
+    return render(request, 'admin/mechanics_list.html', {'mechanics': mechanics})
+
+def delete_mechanic(request, email):
+    mechanic = get_object_or_404(CustomUser, email=email, role='mechanic')
+    if request.method == "POST":
+        mechanic.delete()
+        return redirect('mechanic_list')
+    return redirect('mechanic_list')
+
+def add_mechanic(request) :
+    if request.method == 'POST':
+        user_form = CustomUserCreationForm(request.POST)
+        details_form = UserDetailsForm(request.POST)
+        if user_form.is_valid() and details_form.is_valid():
+            user = user_form.save()
+            details = details_form.save(commit=False)
+            details.user = user
+            details.save()
+            messages.success(request, 'Registered Successfully.')
+            return redirect('mechanic_list')  
+    else:
+        user_form = CustomUserCreationForm()
+        details_form = UserDetailsForm()
+    return render(request,"admin/add_mechanic.html",{'user_form': user_form, 'details_form': details_form})

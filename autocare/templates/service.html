@@ -6,4 +6,13 @@
         <h1>Our Services</h1>
     </div>
 </div>
+<h1>Service Categories</h1>
+    <div class="category-list">
+        {% for category in categories %}
+            <div class="category">
+                <h2>{{ category.name }}</h2>
+                <p>{{ category.description }}</p>
+            </div>
+        {% endfor %}
+    </div>
 {%endblock%}

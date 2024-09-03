@@ -69,3 +69,22 @@ class Vehicle(models.Model):
 
     def __str__(self):
         return f"{self.vehicle_type}{self.vehicle_brand} {self.vehicle_variant} ({self.vehicle_number})"
+    
+#////////////////Service Lists//////////////
+class ServiceCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+    
+
+class ServiceType(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey(ServiceCategory, related_name='service_types', on_delete=models.CASCADE)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+

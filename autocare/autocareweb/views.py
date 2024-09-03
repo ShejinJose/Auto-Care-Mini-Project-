@@ -4,7 +4,7 @@ from .form import CustomUserCreationForm, UserDetailsForm,  VehicleForm
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import CustomUser, UserDetails, Vehicle
+from .models import CustomUser, UserDetails, Vehicle, ServiceCategory
 
 # Create your views here.
 def home(request):
@@ -27,7 +27,7 @@ def cust_login(request) :
                 elif user.role == 'service_manager':
                     return redirect('serviceManager')
                 elif user.role == 'mechanic':
-                     return redirect('mechanics')
+                     return redirect('mechanic')
                 elif user.role == 'customer':
                      return redirect('home')
 
@@ -99,39 +99,13 @@ def cst_admin(request):
 
 #/////////////////Service Manager Dashboard/////////////////////////
 def serviceManager(request):
-    
     return render(request,'serviceManager/managerhome.html')
-"""
-from django.shortcuts import render, redirect
-from .models import Customer, Mechanic, Feedback, Complaint
-from .forms import AlertForm
 
-def service_manager_dashboard(request):
-    customers = Customer.objects.all()
-    mechanics = Mechanic.objects.all()
-    feedbacks = Feedback.objects.all()
-    complaints = Complaint.objects.all()
+#/////////////////Mechanic Dashboard/////////////////////////
+def mechanic(request):
+    return render(request,'mechanics/mechanic_dashboard.html')
 
-    if request.method == 'POST':
-        alert_form = AlertForm(request.POST)
-        if alert_form.is_valid():
-            alert_form.save()  # Save the alert and notify the mechanic
-            messages.success(request, 'Alert sent successfully!')
-            return redirect('service_manager_dashboard')
-    else:
-        alert_form = AlertForm()
 
-    context = {
-        'customers': customers,
-        'mechanics': mechanics,
-        'feedbacks': feedbacks,
-        'complaints': complaints,
-        'alert_form': alert_form,
-    }
-    
-    return render(request, 'service_manager_dashboard.html', context)
-
-"""
 #/////////Customer details in Admin Page/////////////////////////////
 
 def customerdetails(request):
@@ -207,3 +181,18 @@ def add_mechanic(request) :
         user_form = CustomUserCreationForm()
         details_form = UserDetailsForm()
     return render(request,"admin/add_mechanic.html",{'user_form': user_form, 'details_form': details_form})
+
+
+
+#////////////////////Service Categories///////////////////////////////////
+
+def service_category_list(request):
+    categories = ServiceCategory.objects.all()
+    return render(request, 'service_category_list.html', {'categories': categories})
+
+#////////////////////Service Types///////////////////////////////////
+
+def service_type_list(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id)
+    service_types = category.service_types.all()
+    return render(request, 'service_type_list.html', {'category': category, 'service_types': service_types})

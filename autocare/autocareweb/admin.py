@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 # admin.py
 
-from .models import CustomUser, UserDetails, Vehicle
+from .models import CustomUser, UserDetails, Vehicle, ServiceCategory, ServiceType
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 class CustomUserAdmin(BaseUserAdmin):
@@ -25,3 +25,6 @@ class CustomUserAdmin(BaseUserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(UserDetails)
 admin.site.register(Vehicle)
+admin.site.register(ServiceCategory)
+admin.site.register(ServiceType)
+

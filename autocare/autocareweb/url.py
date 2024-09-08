@@ -32,5 +32,7 @@ urlpatterns = [
     path('service-categories/', views.service_category_list, name='service_category_list'),
     #////////////////////// Service Types/////////////////////////////////
     path('categories/<int:category_id>/types/', views.service_type_list, name='service_type_list'),
+    #////////////////////   CUSTOMER PROFILE ///////////////
+     path('customer_profile/', views.customer_profile, name='customer_profile'),
 
 ]

@@ -114,7 +114,7 @@
         <a href="{% url 'customerdetails' %}">Manage Customers</a>
         <a href="{% url 'service_manager_list' %}">Manage Service Managers</a>
         <a href="{% url 'mechanic_list' %}">Manage Mechanics</a>
-        <a href="#services">Manage Services</a>
+        <a href="{%url 'service_category_list'%}">Manage Services</a>
     </div>
 
     <!-- Content Area -->
@@ -189,7 +189,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Manage Services</h5>
                             <p class="card-text">Add and update services offered.</p>
-                            <a href="#services" class="btn btn-light">Go to Services</a>
+                            <a href="{%url 'service_category_list'%}"class="btn btn-light">Go to Services</a>
                         </div>
                     </div>
                 </div>

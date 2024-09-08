@@ -14,6 +14,8 @@ def about(request) :
     return render(request,"about.html")
 def contact(request) :
     return render(request,"contact.html")
+
+#//////////////////////////CUSTOMER LOGIN  /////////////////////////////
 def cust_login(request) :
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -94,6 +96,15 @@ def location(request) :
 
 def cst_admin(request):
     return render(request,'admin/dashboard.html')
+
+#////////////////////////// CUSTOMER PROFILE ////////////////////////
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def customer_profile(request):
+    user_details = UserDetails.objects.get(user=request.user)
+    return render(request, 'customer_profile.html', {'user_details': user_details})
+
 
 
 

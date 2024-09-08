@@ -96,21 +96,44 @@
                             <a href="{%url 'contact'%}" class="nav-item nav-link">Contact</a>
                             <a href="{%url 'location'%}" class="nav-item nav-link">Cost Estimation</a>
                             <a href="{%url 'location'%}" class="nav-item nav-link">Job Portal</a>
-
-                            <a href="{%url 'logout' %}" class="nav-item nav-link">LogOut</a>
                             
-                            <a href="{%url 'customerLogin' %}" class="nav-item nav-link">Login</a>
+                            <div class="navbar-nav ml-auto">
+                                {% if user.is_authenticated %}
+                                    <div class="nav-item dropdown">
+                                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                            <i class="fas fa-user-circle" style="font-size: 24px; margin-right: 5px;"></i> {{ request.user.email }}
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="{% url 'customer_profile' %}" class="dropdown-item">
+                                                <i class="fas fa-user"></i> Profile
+                                            </a>
+                                            <a href="{% url 'logout' %}" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt"></i> Logout
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'customerLogin' %}" class="nav-item nav-link">
+                                        <i class="fas fa-sign-in-alt"></i> Login
+                                    </a>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- <div class="navbar-nav ml-auto">
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'logout' %}" class="nav-item nav-link">Logout</a>
+                                    <a href="{% url 'customer_profile' %}" class="nav-item nav-link">Profile</a>
+                                {% else %}
+                                    <a href="{% url 'customerLogin' %}" class="nav-item nav-link">Login</a>
+                                    
+                                {% endif %}
+                            </div> -->
+                            <!-- <a href="{%url 'logout' %}" class="nav-item nav-link">LogOut</a>
+                            
+                            <a href="{%url 'customerLogin' %}" class="nav-item nav-link">Login</a> -->
 
-                            <!-- <div class="nav-item dropdown">
-                                <a  class="nav-link dropdown-toggle" data-toggle="dropdown">Login</a>
-                                <div class="dropdown-menu">
-                                    <a  class="dropdown-item">Customers</a>
-                                    <a href="mech_login.html" class="dropdown-item">Mechanics</a>
-                                    <a href="sm_login.html" class="dropdown-item">Service Manager</a>
-                                    <a href="admin_login.html" class="dropdown-item">Admin</a>
-                                </div>
-        
-                        </div> -->
+                            
+                        </div> 
                         <div class="ml-auto">
                             <a class="btn btn-custom" href="#">Get Assistance</a>
                         </div>

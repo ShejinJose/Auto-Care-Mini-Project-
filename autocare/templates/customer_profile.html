@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Profile</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .profile-container {
+            margin: 50px auto;
+            max-width: 800px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-info {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .profile-info label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .profile-info i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        .profile-info p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container profile-container">
+        <div class="profile-header">
+            <h2>Customer Profile</h2>
+        </div>
+
+        <div class="profile-info">
+            <i class="fas fa-user"></i>
+            <label>Name:</label>
+            <p>{{ user_details.name }}</p>
+        </div>
+
+        <div class="profile-info">
+            <i class="fas fa-envelope"></i>
+            <label>Email:</label>
+            <p>{{ request.user.email }}</p>
+        </div>
+
+        <div class="profile-info">
+            <i class="fas fa-phone"></i>
+            <label>Phone:</label>
+            <p>{{ user_details.phone }}</p>
+        </div>
+
+        <div class="profile-info">
+            <i class="fas fa-map-marker-alt"></i>
+            <label>Address:</label>
+            <p>{{ user_details.address }}, {{ user_details.city }}, {{ user_details.place }}, {{ user_details.pincode }}</p>
+        </div>
+
+        <div class="profile-info">
+            <i class="fas fa-user-tag"></i>
+            <label>Role:</label>
+            <p>{{ request.user.get_role_display }}</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

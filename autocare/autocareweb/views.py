@@ -1,10 +1,10 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
-from .form import CustomUserCreationForm, UserDetailsForm,  VehicleForm
+from .form import CustomUserCreationForm, UserDetailsForm
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import CustomUser, UserDetails, Vehicle, ServiceCategory
+from .models import CustomUser, UserDetails, ServiceCategory
 
 # Create your views here.
 def home(request):
@@ -57,7 +57,7 @@ def cust_register(request) :
             details.save()
             messages.success(request, 'Registered Successfully.')
             login(request, user)
-            return redirect('add_vehicle')  
+            return redirect('customerLogin')  
     else:
         user_form = CustomUserCreationForm()
         details_form = UserDetailsForm()
@@ -66,17 +66,17 @@ def cust_register(request) :
 
 #///////////////////////////   ADD VEHICLES   /////////////////////////////////////////////
 
-def add_vehicle(request):
-    if request.method == 'POST':
-        form = VehicleForm(request.POST)
-        if form.is_valid():
-            vehicle = form.save(commit=False)
-            vehicle.owner = request.user
-            vehicle.save()
-            return redirect('customerLogin')  # Redirect to the list of vehicles after successful submission
-    else:
-        form = VehicleForm()
-    return render(request, 'add_vehicle.html', {'form': form})
+# def add_vehicle(request):
+#     if request.method == 'POST':
+#         form = VehicleForm(request.POST)
+#         if form.is_valid():
+#             vehicle = form.save(commit=False)
+#             vehicle.owner = request.user
+#             vehicle.save()
+#             return redirect('customerLogin')  # Redirect to the list of vehicles after successful submission
+#     else:
+#         form = VehicleForm()
+#     return render(request, 'add_vehicle.html', {'form': form})
 
 
 def logout_view(request):
@@ -102,8 +102,23 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def customer_profile(request):
-    user_details = UserDetails.objects.get(user=request.user)
+    user_details = get_object_or_404(UserDetails, user=request.user)
     return render(request, 'customer_profile.html', {'user_details': user_details})
+
+@login_required
+def edit_profile(request):
+    user_details = get_object_or_404(UserDetails, user=request.user)
+
+    if request.method == 'POST':
+        form = UserDetailsForm(request.POST, instance=user_details)
+        if form.is_valid():
+            form.save()
+            return redirect('customer_profile')
+    else:
+        form = UserDetailsForm(instance=user_details)
+    
+    return render(request, 'edit_profile.html', {'form': form})
+
 
 
 

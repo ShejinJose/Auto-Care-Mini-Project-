@@ -52,25 +52,61 @@ class UserDetails(models.Model):
         return self.name
 
 ####//////////Vehicle details//////////////////
-class Vehicle(models.Model):
-    VEHICLE_TYPE_CHOICES = [
-        ('car', 'Car'),
-        ('bike', 'Bike'),
-        # Add more types if needed
-    ]
+# class Vehicle(models.Model):
+#     VEHICLE_TYPE_CHOICES = [
+#         ('car', 'Car'),
+#         ('bike', 'Bike'),
+#         # Add more types if needed
+#     ]
 
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='vehicles')
-    vehicle_type = models.CharField(max_length=10, choices=VEHICLE_TYPE_CHOICES)
-    vehicle_brand = models.CharField(max_length=50)
-    vehicle_variant = models.CharField(max_length=50)
-    vehicle_number = models.CharField(max_length=20, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+#     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='vehicles')
+#     vehicle_type = models.CharField(max_length=10, choices=VEHICLE_TYPE_CHOICES)
+#     vehicle_brand = models.CharField(max_length=50)
+#     vehicle_variant = models.CharField(max_length=50)
+#     vehicle_number = models.CharField(max_length=20, unique=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.vehicle_type}{self.vehicle_brand} {self.vehicle_variant} ({self.vehicle_number})"
+#     def __str__(self):
+#         return f"{self.vehicle_type}{self.vehicle_brand} {self.vehicle_variant} ({self.vehicle_number})"
     
+VEHICLE_TYPE_CHOICES = [
+    ('car', 'Car'),
+    ('bike', 'Bike'),
+]
+
+class VehicleMake(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='vehicle_make_images/', blank=True, null=True)
+
+    def _str_(self):
+        return self.name
+
+class VehicleModel(models.Model):
+    make = models.ForeignKey(VehicleMake, on_delete=models.CASCADE)
+    model_name = models.CharField(max_length=100)
+    year = models.IntegerField()
+    image = models.ImageField(upload_to='vehicle_model_images/', blank=True, null=True)
+    vehicle_type = models.CharField(max_length=10, choices=VEHICLE_TYPE_CHOICES)
+
+    def _str_(self):
+        return f"{self.make.name} {self.model_name} ({self.year}) - {self.get_vehicle_type_display()}"
+    
+
+
+class Vehicle(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    vehicle_model = models.ForeignKey(VehicleModel, on_delete=models.CASCADE)
+    registration_number = models.CharField(max_length=20)
+
+    def __str__(self):  # This should be double underscores
+        return f"{self.registration_number} - {self.vehicle_model}"
+
+
 #////////////////Service Lists//////////////
+
+
+
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
@@ -88,3 +124,11 @@ class ServiceType(models.Model):
         return self.name
 
 
+class ServicePrice(models.Model):
+    service_type = models.ForeignKey(ServiceType, related_name='service_prices', on_delete=models.CASCADE)
+    vehicle_model = models.ForeignKey(VehicleModel, related_name='service_prices', on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True, null=True)
+
+    def _str_(self):
+        return f"{self.service_type.name} for {self.vehicle_model} - ₹{self.price} INR"

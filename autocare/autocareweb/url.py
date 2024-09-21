@@ -9,7 +9,6 @@ urlpatterns = [
     path('contact',views.contact,name='contact'),
     path('customerLogin',views.cust_login,name='customerLogin'),
     path('customerRegister',views.cust_register,name='customerRegister'),
-    path('add_vehicle', views.add_vehicle, name='add_vehicle'),
     path('logout',views.logout_view,name="logout"),
     path('location',views.location,name="location"),
     path('price',views.price),
@@ -34,5 +33,6 @@ urlpatterns = [
     path('categories/<int:category_id>/types/', views.service_type_list, name='service_type_list'),
     #////////////////////   CUSTOMER PROFILE ///////////////
      path('customer_profile/', views.customer_profile, name='customer_profile'),
+      path('profile/edit/', views.edit_profile, name='edit_profile'),
 
 ]

@@ -29,3 +29,21 @@ class UserDetailsForm(forms.ModelForm):
 #             'vehicle_variant': forms.TextInput(attrs={'id': 'vehicleVariant', 'required': True}),
 #             'vehicle_number': forms.TextInput(attrs={'id': 'vehicleNumber', 'required': True}),
 #         }
+
+
+from .models import VehicleMake, VehicleModel
+
+class VehicleMakeForm(forms.ModelForm):
+    class Meta:
+        model = VehicleMake
+        fields = ['name', 'image']  # Define the fields to include in the form
+
+class VehicleModelForm(forms.ModelForm):
+    class Meta:
+        model = VehicleModel
+        fields = ['model_name', 'year', 'image', 'vehicle_type'] 
+
+        # Customize widgets (optional) for better rendering
+        widgets = {
+            'vehicle_type': forms.RadioSelect,  # To show radio buttons for vehicle type choices
+        }

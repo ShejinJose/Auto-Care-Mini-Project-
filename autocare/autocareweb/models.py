@@ -79,7 +79,7 @@ class VehicleMake(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='vehicle_make_images/', blank=True, null=True)
 
-    def _str_(self):
+    def __str__(self):  
         return self.name
 
 class VehicleModel(models.Model):
@@ -97,10 +97,8 @@ class VehicleModel(models.Model):
 class Vehicle(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     vehicle_model = models.ForeignKey(VehicleModel, on_delete=models.CASCADE)
-    registration_number = models.CharField(max_length=20)
+    registration_number = models.CharField(max_length=20, unique=True)
 
-    def __str__(self):  # This should be double underscores
-        return f"{self.registration_number} - {self.vehicle_model}"
 
 
 #////////////////Service Lists//////////////

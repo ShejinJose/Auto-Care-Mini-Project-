@@ -4,7 +4,8 @@ from .form import CustomUserCreationForm, UserDetailsForm
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import CustomUser, UserDetails, ServiceCategory
+from .models import *
+from .form import *
 
 # Create your views here.
 def home(request):
@@ -96,6 +97,73 @@ def location(request) :
 
 def cst_admin(request):
     return render(request,'admin/dashboard.html')
+
+from django.shortcuts import render, redirect
+from .form import VehicleMakeForm, VehicleModelForm
+
+def create_vehicle_make(request):
+    if request.method == 'POST':
+        form = VehicleMakeForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('vehicle_make_success')  # Redirect to a success page or list view
+    else:
+        form = VehicleMakeForm()
+
+    return render(request, 'admin/vehicle_make_form.html', {'form': form})
+
+def create_vehicle_model(request):
+    if request.method == 'POST':
+        form = VehicleModelForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('vehicle_model_success')  # Redirect to a success page or list view
+    else:
+        form = VehicleModelForm()
+
+    return render(request, 'admin/add_vehicle_model.html', {'form': form})
+
+def manage_vehicle(request) :
+    vehicle_makes = VehicleMake.objects.all()
+    return render(request, 'admin/manage_vehicle.html',{'vehicle_makes': vehicle_makes})
+
+
+# def add_vehicle_model(request, brand_id):
+#     brand = get_object_or_404(VehicleMake, id=brand_id)
+
+#     if request.method == 'POST':
+#         form = VehicleModelForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             vehicle_model = form.save(commit=False)
+#             vehicle_model.make = brand  # Assign the brand to the vehicle model
+#             vehicle_model.save()
+#             return redirect('brand_variants', brand_id=brand.id)
+#     else:
+#         form = VehicleModelForm()
+
+#     return render(request, 'admin/add_vehicle_model.html', {'form': form, 'brand': brand})
+
+def add_vehicle_model(request, brand_id):
+    brand = get_object_or_404(VehicleMake, id=brand_id)
+
+    if request.method == 'POST':
+        form = VehicleModelForm(request.POST, request.FILES)
+        if form.is_valid():
+            vehicle_model = form.save(commit=False)
+            vehicle_model.make = brand  # Link the vehicle model to the selected brand
+            vehicle_model.save()
+            return redirect('brand_variants', brand_id=brand.id)  # Redirect to the brand variants page
+    else:
+        form = VehicleModelForm()
+
+    return render(request, 'admin/add_vehicle_model.html', {'form': form, 'brand': brand})
+
+
+def brand_variants(request, brand_id):
+    brand = get_object_or_404(VehicleMake, id=brand_id)
+    variants = VehicleModel.objects.filter(make=brand)
+    return render(request, 'admin/brand_variants.html', {'brand': brand, 'variants': variants})
+
 
 #////////////////////////// CUSTOMER PROFILE ////////////////////////
 from django.contrib.auth.decorators import login_required

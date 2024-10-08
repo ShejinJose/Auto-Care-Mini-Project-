@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils.text import slugify
 
 class UserRole(models.TextChoices):
     ADMIN = 'admin', _('Admin')
@@ -130,3 +131,31 @@ class ServicePrice(models.Model):
 
     def _str_(self):
         return f"{self.service_type.name} for {self.vehicle_model} - ₹{self.price} INR"
+    
+
+class SlotStatus(models.TextChoices):
+    ALLOCATED = 'allocated', _('Allocated')
+    FREE = 'free', _('Free')
+    DISABLED = 'disabled', _('Disabled')
+
+class Slot(models.Model):
+    slotname = models.CharField(max_length=100)
+    mechanic = models.ForeignKey(CustomUser, limit_choices_to={'role': 'mechanic'}, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=10, choices=SlotStatus.choices, default=SlotStatus.FREE)
+    slug = models.SlugField(unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.slotname)
+        super(Slot, self).save(*args, **kwargs)
+
+class AllocatedManager(models.Model):
+    manager = models.ForeignKey(
+        CustomUser,
+        limit_choices_to={'role': UserRole.SERVICE_MANAGER},
+        on_delete=models.CASCADE
+    )
+    slot = models.ForeignKey(
+        Slot,
+        on_delete=models.CASCADE
+    )

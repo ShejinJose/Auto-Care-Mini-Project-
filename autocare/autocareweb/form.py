@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import CustomUser, UserDetails
+from .models import *
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -47,3 +47,67 @@ class VehicleModelForm(forms.ModelForm):
         widgets = {
             'vehicle_type': forms.RadioSelect,  # To show radio buttons for vehicle type choices
         }
+
+
+
+# class SlotForm(forms.ModelForm):
+#     class Meta:
+#         model = Slot
+#         fields = ['slotname', 'mechanic', 'status']
+
+# class SlotForm(forms.ModelForm):
+#     class Meta:
+#         model = Slot
+#         fields = ['slotname', 'status', 'mechanic']  # Keep the mechanic field for now
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         # Limit the mechanic field queryset to service managers instead of mechanics
+#         self.fields['mechanic'].queryset = CustomUser.objects.filter(role=UserRole.SERVICE_MANAGER)
+#         self.fields['mechanic'].label = "Service Manager"  # Change the label to reflect this is for managers
+
+
+
+
+
+class AllocateManagerForm(forms.ModelForm):
+    class Meta:
+        model = AllocatedManager
+        fields = ['manager']  # Only the manager field
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Limit the queryset to only service managers
+        self.fields['manager'].queryset = CustomUser.objects.filter(role=UserRole.SERVICE_MANAGER)
+
+
+
+class SlotForm(forms.ModelForm):
+    manager = forms.ModelChoiceField(queryset=CustomUser.objects.filter(role=UserRole.SERVICE_MANAGER), label="Service Manager")
+
+    class Meta:
+        model = Slot
+        fields = ['slotname', 'status']
+
+    def save(self, commit=True):
+        # Save the slot first
+        slot = super().save(commit=False)
+
+        # Save the slot instance
+        if commit:
+            slot.save()
+
+        # Handle the allocated manager assignment
+        manager = self.cleaned_data.get('manager')
+        if manager:
+            AllocatedManager.objects.update_or_create(
+                slot=slot,
+                defaults={'manager': manager}
+            )
+        return slot
+class ManagerAllocationForm(forms.Form):
+    manager = forms.ModelChoiceField(
+        queryset=CustomUser.objects.filter(role=UserRole.SERVICE_MANAGER),
+        label="Service Manager",
+        required=True
+    )

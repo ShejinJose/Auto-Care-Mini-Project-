@@ -16,7 +16,6 @@ urlpatterns = [
     path('price',views.price),
     path('service',views.service,name="service"),
     path('booking',views.booking,name="booking"),
-    path('serviceManager',views.serviceManager,name="serviceManager"),
     path('mechanic',views.mechanic,name="mechanic"),
     #/////////Admin Dashboard///////////
     path('cst_admin',views.cst_admin,name="cst_admin"),
@@ -33,6 +32,15 @@ urlpatterns = [
     path('cst_admin/manage_vehicle', views.manage_vehicle, name='manage_vehicle'),
     path('brands/<int:brand_id>/add_variant/', views.add_vehicle_model, name='add_variant'),
     path('cst_admin/manage_vehicle/<int:brand_id>/brand_variants/', views.brand_variants, name='brand_variants'),
+    path ('cst_admin/addSlot/', views.manageSlot ,name='addslot'),
+    # path ('cst_admin/slot_list/', views.Slotlist ,name='slot_list'),
+    path('cst_admin/slots/', views.slot_list, name='slot_list'),
+    path('allocate-manager/<slug:slug>/', views.allocate_manager, name='allocate_manager'),
+
+
+    #/////////// Service Manager /////////////////////////////////////////
+
+    path('serviceManager/dashboard/', views.manager_dashboard, name='manager_dashboard'),
 
 
     #////////////////////// Service Categories/////////////////////////////////

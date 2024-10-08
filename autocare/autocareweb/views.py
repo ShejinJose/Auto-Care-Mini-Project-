@@ -28,7 +28,7 @@ def cust_login(request) :
                 if user.role == 'admin':
                     return redirect('cst_admin')
                 elif user.role == 'service_manager':
-                    return redirect('serviceManager')
+                    return redirect('manager_dashboard')
                 elif user.role == 'mechanic':
                      return redirect('mechanic')
                 elif user.role == 'customer':
@@ -128,20 +128,68 @@ def manage_vehicle(request) :
     return render(request, 'admin/manage_vehicle.html',{'vehicle_makes': vehicle_makes})
 
 
-# def add_vehicle_model(request, brand_id):
-#     brand = get_object_or_404(VehicleMake, id=brand_id)
+#//////////////// Slot List ????????????????????????????????????????????
+
+# def Slotlist(request):
+#     slots = Slot.objects.all() 
+#     return render(request, 'admin/slot_list.html',  {'form': forms, 'slot': slots})
+
+def manageSlot (request):
+    if request.method == 'POST':
+        form = SlotForm(request.POST)
+        if form.is_valid():
+            form.save()  # Save the new slot to the database
+            return redirect('slot_list')  # Redirect to the list of slots or a success page
+    else:
+        form = SlotForm()
+    return render (request,"admin/addslot.html",{'form':form})
+
+def slot_list(request):
+    slots = Slot.objects.all()
+    form = ManagerAllocationForm()
+
+    context = {
+        'slots': slots,
+        'form': form
+    }
+    return render(request, 'admin/slot_list.html', context)
+
+
+# def allocate_manager(request, slug):
+#     slot = get_object_or_404(Slot, slug=slug)
 
 #     if request.method == 'POST':
-#         form = VehicleModelForm(request.POST, request.FILES)
+#         form = AllocateManagerForm(request.POST)
 #         if form.is_valid():
-#             vehicle_model = form.save(commit=False)
-#             vehicle_model.make = brand  # Assign the brand to the vehicle model
-#             vehicle_model.save()
-#             return redirect('brand_variants', brand_id=brand.id)
+#             # Create or update the allocated manager
+#             AllocatedManager.objects.update_or_create(
+#                 slot=slot,
+#                 defaults={'manager': form.cleaned_data['manager']}
+#             )
+#             slot.status = SlotStatus.ALLOCATED  # Update the slot status
+#             slot.save()
+#             return redirect('slot_list')  # Redirect to the slot list
 #     else:
-#         form = VehicleModelForm()
+#         form = AllocateManagerForm()  # Create a new form instance
 
-#     return render(request, 'admin/add_vehicle_model.html', {'form': form, 'brand': brand})
+#     return render(request, 'admin/addslot.html', {'form': form, 'slot': slot})
+
+def allocate_manager(request, slug):
+    slot = get_object_or_404(Slot, slug=slug)
+    if request.method == 'POST':
+        form = ManagerAllocationForm(request.POST)
+        if form.is_valid():
+            manager = form.cleaned_data.get('manager')
+            AllocatedManager.objects.update_or_create(
+                slot=slot,
+                defaults={'manager': manager}
+            )
+            return redirect('slot_list')
+    return redirect('slot_list')
+
+
+
+#/////////////// add vehicle by admin ////////////////////
 
 def add_vehicle_model(request, brand_id):
     brand = get_object_or_404(VehicleMake, id=brand_id)
@@ -192,8 +240,16 @@ def edit_profile(request):
 
 
 #/////////////////Service Manager Dashboard/////////////////////////
-def serviceManager(request):
-    return render(request,'serviceManager/managerhome.html')
+
+@login_required
+def manager_dashboard(request):
+    # Get the logged-in service manager
+    manager = request.user
+
+    # Retrieve the slot assigned to the service manager
+    assigned_slots = AllocatedManager.objects.filter(manager=manager)
+
+    return render(request, 'serviceManager/dashboard.html', {'assigned_slots': assigned_slots})
 
 #/////////////////Mechanic Dashboard/////////////////////////
 def mechanic(request):

@@ -52,10 +52,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'autocare.urls'
 
+import os
+BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -134,3 +136,17 @@ AUTH_USER_MODEL = 'autocareweb.CustomUser'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# For testing (prints the email in the console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# For production (set up SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'autocare274@gmail.com'
+EMAIL_HOST_PASSWORD = 'rdxi vzff aolo oebr'
+
+

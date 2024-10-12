@@ -111,3 +111,96 @@ class ManagerAllocationForm(forms.Form):
         label="Service Manager",
         required=True
     )
+
+
+class AssignMechanicForm(forms.Form):
+    slot_id = forms.CharField(widget=forms.HiddenInput())  # Hidden field to store the slot ID
+    mechanic = forms.ModelChoiceField(
+        queryset=CustomUser.objects.filter(role=UserRole.MECHANIC),
+        label="Select Mechanic"
+    )
+
+from django import forms
+from .models import AllocatedMechanic, CustomUser, Slot
+
+class MechanicAllocationForm(forms.ModelForm):
+    mechanic = forms.ModelChoiceField(
+        queryset=CustomUser.objects.filter(role=UserRole.MECHANIC),
+        label="Select Mechanic"
+    )
+    slot = forms.ModelChoiceField(
+        queryset=Slot.objects.all(),
+        label="Select Slot"
+    )
+
+    class Meta:
+        model = AllocatedMechanic
+        fields = ['mechanic', 'slot']
+
+
+#/////////////////////   Change Password form ?//////////////
+
+from django import forms
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import get_user_model
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    class Meta:
+        model = get_user_model()
+        fields = ['old_password', 'new_password1', 'new_password2']
+
+
+#///////////////    Add Vehicle in Customer Page /////////////////////
+
+# from django import forms
+# from .models import Vehicle
+
+# class AddVehicleForm(forms.ModelForm):
+#     class Meta:
+#         model = Vehicle
+#         fields = ['vehicle_model', 'registration_number']
+#         widgets = {
+#             'vehicle_model': forms.Select(attrs={'class': 'form-control'}),
+#             'registration_number': forms.TextInput(attrs={'class': 'form-control'}),
+#         }
+
+
+from django import forms
+from .models import Vehicle
+
+class VehicleForm(forms.ModelForm):
+    class Meta:
+        model = Vehicle
+        fields = ['registration_number']  # Only the registration number will be filled by the user
+        widgets = {
+            'registration_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter vehicle registration number',
+                'required': True
+            }),
+        }
+        labels = {
+            'registration_number': 'Vehicle Registration Number'
+        }
+
+
+#/////////////////   Add service category in admin page /////////////////////
+
+from django import forms
+from .models import ServiceCategory
+
+class ServiceCategoryForm(forms.ModelForm):
+    class Meta:
+        model = ServiceCategory
+        fields = ['name', 'image', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
+
+
+class ServiceTypeForm(forms.ModelForm):
+    class Meta:
+        model = ServiceType
+        fields = ['name', 'image', 'description']

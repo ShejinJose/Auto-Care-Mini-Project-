@@ -108,6 +108,7 @@ class Vehicle(models.Model):
 
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    image = models.ImageField(upload_to='service_category_images/', blank=True, null=True)
     description = models.TextField()
 
     def __str__(self):
@@ -117,6 +118,7 @@ class ServiceCategory(models.Model):
 class ServiceType(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(ServiceCategory, related_name='service_types', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='service_type_images/', blank=True, null=True)
     description = models.TextField()
 
     def __str__(self):
@@ -132,6 +134,9 @@ class ServicePrice(models.Model):
     def _str_(self):
         return f"{self.service_type.name} for {self.vehicle_model} - ₹{self.price} INR"
     
+
+
+#//////////////////////////  slot list ////////////////////////
 
 class SlotStatus(models.TextChoices):
     ALLOCATED = 'allocated', _('Allocated')
@@ -159,3 +164,54 @@ class AllocatedManager(models.Model):
         Slot,
         on_delete=models.CASCADE
     )
+
+
+class AllocatedMechanic(models.Model):
+    mechanic = models.ForeignKey(
+        CustomUser,
+        limit_choices_to={'role': UserRole.MECHANIC},
+        on_delete=models.CASCADE,
+        related_name='allocated_mechanics'  # Unique reverse accessor for mechanic
+    )
+    manager = models.ForeignKey(
+        CustomUser,
+        limit_choices_to={'role': UserRole.SERVICE_MANAGER},
+        on_delete=models.CASCADE,
+        related_name='allocated_managers'  # Unique reverse accessor for manager
+    )
+    slot = models.ForeignKey(
+        Slot,
+        on_delete=models.CASCADE
+    )
+    allocated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('slot', 'mechanic')  # To prevent multiple mechanics being assigned to one slot
+
+    def __str__(self):
+        return f"Mechanic {self.mechanic.email} assigned to Slot {self.slot.slotname}"
+
+
+
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+class MechanicLevel(models.TextChoices):
+    SENIOR = 'senior', _('Senior Level')
+    MEDIUM = 'medium', _('Medium Level')
+    ENTRY = 'entry', _('Entry Level')
+
+class MechanicStatus(models.TextChoices):
+    WORKING = 'working', _('Working')
+    ACTIVE = 'active', _('Active')
+    ABSENTEES = 'absentees', _('Absentees')
+
+class Mechanic(models.Model):
+    mechanic_email = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'mechanic'}, primary_key=True)
+    status = models.IntegerField(choices=MechanicStatus.choices, default=MechanicStatus.ACTIVE)
+    level = models.IntegerField(choices=MechanicLevel.choices, default=MechanicLevel.ENTRY)
+
+    def __str__(self):
+        return f"{self.userid.email} - {self.get_level_display()}"
+
+

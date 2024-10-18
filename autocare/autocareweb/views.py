@@ -112,19 +112,6 @@ def cust_register(request) :
 
 #///////////////////////////   ADD VEHICLES   /////////////////////////////////////////////
 
-# def add_vehicle(request):
-#     if request.method == 'POST':
-#         form = VehicleForm(request.POST)
-#         if form.is_valid():
-#             vehicle = form.save(commit=False)
-#             vehicle.owner = request.user
-#             vehicle.save()
-#             return redirect('customerLogin')  # Redirect to the list of vehicles after successful submission
-#     else:
-#         form = VehicleForm()
-#     return render(request, 'add_vehicle.html', {'form': form})
-
-
 def select_vehicle(request):
     user = request.user
     vehicles = Vehicle.objects.filter(user=user)
@@ -140,24 +127,10 @@ def select_vehicle(request):
     return render(request, 'vehicle/select_vehicle.html', {'vehicles': vehicles})
 
 
-# def add_vehicle(request):
-#     if request.method == 'POST':
-#         form = AddVehicleForm(request.POST)
-#         if form.is_valid():
-#             vehicle = form.save(commit=False)
-#             vehicle.user = request.user
-#             vehicle.save()
-#             return redirect('select_vehicle')  # Redirect to select vehicle after adding
-#     else:
-#         form = AddVehicleForm()
-
-#     return render(request, 'vehicle/add_vehicle.html', {'form': form})
-
-from .form import VehicleForm
-
 def vehicle_brand(request):
     vehicle_makes = VehicleMake.objects.all()  # Fetch all vehicle makes (brands)
     return render(request, 'vehicle/vehicle_brand.html', {'vehicle_makes': vehicle_makes})
+    
 
 # View to display variants for a selected brand
 def vehicle_variants(request, brand_id):
@@ -202,6 +175,181 @@ def add_vehicle_number(request, variant_id):
         'form': form
     })
 
+#//////////////  Services For Customer //////////////////////////////
+def customer_service_category(request):
+    service_categories = ServiceCategory.objects.all()
+    return render(request, 'service/cst_service_category.html', {'service_categories': service_categories})
+
+# View for listing service types of a selected category
+from django.shortcuts import render, get_object_or_404
+from .models import ServiceCategory, ServiceType, ServicePrice, Vehicle, VehicleModel
+
+def customer_service_type(request, category_id):
+    # Get the selected vehicle from the session
+    selected_vehicle_id = request.session.get('selected_vehicle_id')
+
+    # Ensure the vehicle is selected
+    if not selected_vehicle_id:
+        return redirect('select_vehicle')  # Redirect to vehicle selection if not selected
+
+    # Get the selected vehicle model
+    selected_vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id)
+    vehicle_variant = selected_vehicle.vehicle_model
+
+    # Get the service category and service types for this category
+    service_category = get_object_or_404(ServiceCategory, id=category_id)
+    service_types = ServiceType.objects.filter(category=service_category)
+
+    # Fetch service prices for each service type for the selected vehicle variant
+    service_type_prices = []
+    for service_type in service_types:
+        service_price = ServicePrice.objects.filter(service_type=service_type, vehicle_model=vehicle_variant).first()
+        service_type_prices.append({
+            'service_type': service_type,
+            'price': service_price.price if service_price else 'Price not available',
+            'description': service_price.description if service_price else ''
+        })
+
+    return render(request, 'service/cst_service_type.html', {
+        'service_category': service_category,
+        'service_type_prices': service_type_prices,
+        'vehicle_variant': vehicle_variant
+    })
+
+
+#////////////////////////////// Service Cart ////////////////////////
+
+from django.http import JsonResponse
+from .models import ServiceCart
+
+# def add_to_cart(request):
+#     if request.method == 'POST':
+#         service_type_id = request.POST.get('service_type_id')
+#         vehicle_id = request.session.get('selected_vehicle_id')
+
+#         service_type = ServiceType.objects.get(id=service_type_id)
+#         vehicle = Vehicle.objects.get(id=vehicle_id)
+
+#         # Check if item already in cart
+#         cart_item, created = ServiceCart.objects.get_or_create(
+#             user=request.user,
+#             service_type=service_type,
+#             vehicle=vehicle
+#         )
+
+#         if not created:
+#             return JsonResponse({'message': 'Item already in cart'}, status=400)
+
+#         return JsonResponse({'message': 'Added to cart successfully'}, status=200)
+
+# def view_cart(request):
+#     vehicle_id = request.session.get('selected_vehicle_id')
+#     vehicle = Vehicle.objects.get(id=vehicle_id)
+
+#     cart_items = ServiceCart.objects.filter(user=request.user, vehicle=vehicle)
+
+#     return render(request, 'service/view_cart.html', {
+#         'cart_items': cart_items,
+#         'vehicle': vehicle
+#     })
+
+# def remove_from_cart(request, cart_item_id):
+#     cart_item = get_object_or_404(ServiceCart, id=cart_item_id)
+#     cart_item.delete()
+#     return JsonResponse({'message': 'Removed from cart'}, status=200)
+
+# def add_to_cart(request):
+#     if request.method == 'POST':
+#         service_type_id = request.POST.get('service_type_id')
+#         vehicle_id = request.session.get('selected_vehicle_id')
+
+#         # Ensure that service type and vehicle are valid
+#         service_type = get_object_or_404(ServiceType, id=service_type_id)
+#         vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+
+#         # Add service to cart
+#         ServiceCart.objects.create(service_type=service_type, vehicle=vehicle)
+
+#         return JsonResponse({'message': 'Added to cart successfully'})
+
+#     return JsonResponse({'message': 'Failed to add to cart'}, status=400)
+from django.contrib.auth.decorators import login_required
+
+# @login_required
+# def add_to_cart(request, service_type_id):
+#     # Get the logged-in user
+#     user = request.user
+
+#     # Get the service type and selected vehicle
+#     service_type = get_object_or_404(ServiceType, id=service_type_id)
+#     selected_vehicle_id = request.session.get('selected_vehicle_id')
+
+#     # Ensure the vehicle is selected
+#     if not selected_vehicle_id:
+#         return redirect('select_vehicle')  # Redirect to vehicle selection if not selected
+
+#     vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id)
+
+#     # Create or update the service cart
+#     ServiceCart.objects.create(user=user, service_type=service_type, vehicle=vehicle)
+
+#     return redirect('customer_service_type', category_id=service_type.category.id)
+
+@login_required
+def add_to_cart(request, service_type_id):
+    if request.method == 'POST':
+        user = request.user
+        service_type = get_object_or_404(ServiceType, id=service_type_id)
+        selected_vehicle_id = request.session.get('selected_vehicle_id')
+
+        if not selected_vehicle_id:
+            return redirect('select_vehicle')  # Redirect to vehicle selection if not selected
+
+        vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id)
+
+        # Create or update the service cart
+        ServiceCart.objects.create(user=user, service_type=service_type, vehicle=vehicle)
+
+        return JsonResponse({'message': 'Added to cart successfully'})
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
+
+# View Cart
+def view_cart(request):
+    vehicle_id = request.session.get('selected_vehicle_id')
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    cart_items = ServiceCart.objects.filter(vehicle=vehicle)
+
+    return render(request, 'service/view_cart.html', {
+        'vehicle': vehicle,
+        'cart_items': cart_items,
+    })
+# from django.template.loader import render_to_string 
+# def view_cart(request):
+#     vehicle_id = request.session.get('selected_vehicle_id')
+#     vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+#     cart_items = ServiceCart.objects.filter(vehicle=vehicle)
+
+#     # Render only the cart items section as a partial HTML
+#     cart_html = render_to_string('service/view_cart.html', {
+#         'vehicle': vehicle,
+#         'cart_items': cart_items,
+#     })
+
+#     # Return the cart HTML as a JSON response
+#     return JsonResponse({'cart_html': cart_html})
+
+# Remove from Cart
+from django.http import JsonResponse
+
+
+
+def remove_from_cart(request, cart_id):
+    print(request)  # Just to make use of the request variable
+    cart_item = get_object_or_404(ServiceCart, id=cart_id)
+    cart_item.delete()
+    return JsonResponse({'message': 'Removed from cart'})
 
 
 
@@ -377,7 +525,8 @@ def manager_dashboard(request):
     assigned_slots = AllocatedManager.objects.filter(manager=manager)
 
     # Initialize the mechanic variable
-    mechanic = None  # Set mechanic to None initially
+    mechanic = CustomUser.objects.filter(role ='mechanic')
+    print(mechanic)
 
     if request.method == 'POST':
         form = AssignMechanicForm(request.POST)
@@ -399,7 +548,7 @@ def manager_dashboard(request):
         'serviceManager/dashboard.html', 
         {
             'assigned_slots': assigned_slots,
-            'mechanic': mechanic,  # mechanic will be None in GET requests
+            'mechanics': mechanic,  # mechanic will be None in GET requests
             'form': form,
             'user': request.user
         }
@@ -490,15 +639,54 @@ def add_service_manager(request) :
 #/////////Mechanics details in Admin Page/////////////////////////////
 
 
+# def mechanic_list(request):
+#     mechanics_users = CustomUser.objects.filter(role='mechanic')
+#       # Filter service managers
+#     mechanics_data = []
+
+#     for user in mechanics_users:
+#             print(user)
+#             des =Mechanic.objects.filter(mechanic = user)
+#             if(des):
+#                 res =des
+#             else:
+#                 res=''
+#             print(res)
+#             mechanics_data.append({
+#                 'mechanic': user,
+#                 'data':res
+#             })
+#     print(mechanics_data)
+#     return render(request, 'admin/mechanics_list.html', {'mechanics': mechanics_data})
+
+
 def mechanic_list(request):
-    mechanics = CustomUser.objects.filter(role='mechanic')  # Filter service managers
-    return render(request, 'admin/mechanics_list.html', {'mechanics': mechanics})
+    mechanics_users = CustomUser.objects.filter(role='mechanic')
+    mechanics_data = []
+
+    for user in mechanics_users:
+        mechanic_details = Mechanic.objects.filter(mechanic=user).first()
+        user_details = UserDetails.objects.filter(user=user).first()
+        
+        mechanics_data.append({
+            'mechanic': user,
+            'data': mechanic_details,
+            'details': user_details
+        })
+
+    return render(request, 'admin/mechanics_list.html', {'mechanics': mechanics_data})
+
+# def delete_mechanic(request, email):
+#     mechanic = get_object_or_404(CustomUser, email=email, role='mechanic')
+#     if request.method == "POST":
+#         mechanic.delete()
+#         return redirect('mechanic_list')
+#     return redirect('mechanic_list')
 
 def delete_mechanic(request, email):
     mechanic = get_object_or_404(CustomUser, email=email, role='mechanic')
-    if request.method == "POST":
-        mechanic.delete()
-        return redirect('mechanic_list')
+    mechanic.delete()  # Also removes related UserDetails due to cascade
+    messages.success(request, 'Mechanic deleted successfully.')
     return redirect('mechanic_list')
 
 def add_mechanic(request) :
@@ -524,17 +712,48 @@ def add_mechanic(request) :
 
 # View for updating mechanic level
 def update_mechanic_level(request, mechanic_id):
-    mechanic = get_object_or_404(Mechanic, mechanic_id=mechanic_id)
+    mechanic_user = get_object_or_404(CustomUser, id=mechanic_id)
+    
+    # Check if the Mechanic entry exists for the user
+    mechanic, created = Mechanic.objects.get_or_create(mechanic=mechanic_user)
     
     if request.method == 'POST':
         selected_level = request.POST.get('level')
         mechanic.level = selected_level
         mechanic.save()
+
+        if created:
+            messages.success(request, 'Mechanic created and level set successfully.')
+        else:
+            messages.success(request, 'Mechanic level updated successfully.')
         
-        messages.success(request, 'Mechanic level updated successfully.')
         return redirect('mechanic_list')
 
     return redirect('mechanic_list')
+
+
+def mechanic_profile(request, email):
+    mechanic = get_object_or_404(CustomUser, email=email, role='mechanic')
+    user_details = UserDetails.objects.get(user=mechanic)
+    mechanic_data = Mechanic.objects.get(mechanic=mechanic)
+    
+    return render(request, 'admin/mechanic_profile.html', {
+        'mechanic': mechanic,
+        'user_details': user_details,
+        'mechanic_data': mechanic_data
+    })
+
+def edit_mechanic_profile(request, mechanic_id):
+    mechanic = get_object_or_404(CustomUser, id=mechanic_id)
+    if request.method == 'POST':
+        mechanic.details.name = request.POST.get('name')
+        mechanic.details.phone = request.POST.get('phone')
+        mechanic.details.address = request.POST.get('address')
+        mechanic.details.city = request.POST.get('city')
+        mechanic.details.place = request.POST.get('place')
+        mechanic.details.pincode = request.POST.get('pincode')
+        mechanic.details.save()
+        return redirect('mechanic_profile', email=mechanic.email)
 
 
 
@@ -633,3 +852,130 @@ def delete_service_type(request, pk):
     return render(request, 'admin/service/delete_service_type.html', {'service_type': service_type})
 
 
+#//////////////////////////////    Service price ////////////////////////////////
+def brands(request):
+    vehicle_makes = VehicleMake.objects.all()
+    return render(request, 'admin/service_price/brands.html', {'vehicle_makes': vehicle_makes})
+def variants(request, make_id):
+    variants = VehicleModel.objects.filter(make_id=make_id)
+    return render(request, 'admin/service_price/variants.html', {'variants': variants})
+from .models import ServiceCategory
+
+def service_category(request, variant_id):
+    service_categories = ServiceCategory.objects.all()
+    vehicle_variant = get_object_or_404(VehicleModel, id=variant_id)
+    return render(request, 'admin/service_price/service_category.html', {'service_categories': service_categories, 'vehicle_variant': vehicle_variant})
+
+# def service_type(request, category_id, variant_id):
+#     service_types = ServiceType.objects.filter(category_id=category_id)
+#     vehicle_variant = get_object_or_404(VehicleModel, id=variant_id)
+#     return render(request, 'admin/service_price/service_type.html', {'service_types': service_types, 'vehicle_variant': vehicle_variant})
+
+def service_type(request, variant_id, category_id):
+    vehicle_variant = get_object_or_404(VehicleModel, id=variant_id)
+    service_types = ServiceType.objects.filter(category_id=category_id)
+
+    # Prepare a dictionary to store service prices for each service type
+    service_prices_dict = {}
+
+    for service_type in service_types:
+        # Filter based on the correct field 'vehicle_model' (variant)
+        service_price = ServicePrice.objects.filter(vehicle_model=vehicle_variant, service_type=service_type).first()
+        service_prices_dict[service_type.id] = service_price
+
+    if request.method == 'POST':
+        service_type_id = request.POST.get('service_type_id')
+        price = request.POST.get('price')
+        description = request.POST.get('description')
+
+        service_type = get_object_or_404(ServiceType, id=service_type_id)
+
+        # Check if a ServicePrice already exists for the selected vehicle variant and service type
+        service_price, created = ServicePrice.objects.get_or_create(
+            vehicle_model=vehicle_variant,
+            service_type=service_type,
+            defaults={'price': price, 'description': description}
+        )
+
+        if not created:
+            # If it already exists, update the price and description
+            service_price.price = price
+            service_price.description = description
+            service_price.save()
+
+        # Redirect after saving to avoid form resubmission
+        return redirect('service_type', variant_id=vehicle_variant.id, category_id=category_id)
+
+    context = {
+        'service_types': service_types,
+        'vehicle_variant': vehicle_variant,
+        'service_prices_dict': service_prices_dict,  # Pass the filtered prices
+    }
+
+    return render(request, 'admin/service_price/service_type.html', context)
+
+
+
+# def add_service_price(request, service_type_id, variant_id):
+#     service_type = get_object_or_404(ServiceType, id=service_type_id)
+#     vehicle_variant = get_object_or_404(VehicleModel, id=variant_id)
+    
+#     if request.method == 'POST':
+#         form = ServicePriceForm(request.POST)
+#         if form.is_valid():
+#             service_price = form.save(commit=False)
+#             service_price.service_type = service_type
+#             service_price.vehicle_model = vehicle_variant
+#             service_price.save()
+#             return redirect('service_type', category_id=service_type.category.id, variant_id=vehicle_variant.id)
+#     else:
+#         form = ServicePriceForm()
+    
+#     return render(request, 'admin/service_price/add_service_price.html', {'form': form, 'service_type': service_type, 'vehicle_variant': vehicle_variant})
+
+def add_service_price(request, service_type_id, variant_id):
+    service_type = get_object_or_404(ServiceType, id=service_type_id)
+    vehicle_variant = get_object_or_404(VehicleModel, id=variant_id)
+    
+    if request.method == 'POST':
+        form = ServicePriceForm(request.POST)
+        if form.is_valid():
+            service_price = form.save(commit=False)
+            # Set the foreign keys
+            service_price.service_type = service_type
+            service_price.vehicle_model = vehicle_variant
+            service_price.save()
+            return redirect('service_type', category_id=service_type.category.id, variant_id=vehicle_variant.id)
+    else:
+        form = ServicePriceForm()
+    
+    return render(request, 'admin/service_price/add_service_price.html', {'form': form, 'service_type': service_type, 'vehicle_variant': vehicle_variant})
+
+
+
+# def edit_service_price(request, service_price_id):
+#     # Get the service price object or return a 404 if not found
+#     service_price = get_object_or_404(ServicePrice, id=service_price_id)
+    
+#     if request.method == 'POST':
+#         form = ServicePriceForm(request.POST, instance=service_price)  # Bind the form to the existing service price
+#         if form.is_valid():
+#             form.save()  # Save the updated service price
+#             return redirect('service_type', category_id=service_price.service_type.category.id, variant_id=service_price.vehicle_model.id)  # Redirect to the service type page
+#     else:
+#         form = ServicePriceForm(instance=service_price)  # Pre-fill the form with existing data
+    
+#     return render(request, 'admin/service_price/edit_service_price.html', {'form': form, 'service_price': service_price})
+
+def edit_service_price(request, service_price_id):
+    service_price = get_object_or_404(ServicePrice, id=service_price_id)
+    
+    if request.method == 'POST':
+        form = ServicePriceForm(request.POST, instance=service_price)  # Bind to existing service price
+        if form.is_valid():
+            form.save()  # Save the updated service price
+            return redirect('service_type', category_id=service_price.service_type.category.id, variant_id=service_price.vehicle_model.id)
+    else:
+        form = ServicePriceForm(instance=service_price)  # Pre-fill form with existing data
+    
+    return render(request, 'admin/service_price/edit_service_price.html', {'form': form, 'service_price': service_price})

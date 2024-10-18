@@ -1,0 +1,231 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+<!-- <div class="container mt-5">
+    <h3>Service Types for Category: {{ service_category.name }}</h3>
+    <h4>Selected Vehicle: {{ vehicle_variant.make.name }} {{ vehicle_variant.model_name }} ({{ vehicle_variant.year }})</h4>
+    <ul class="list-group">
+        {% for item in service_type_prices %}
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-2">
+                    {% if item.service_type.image %}
+                        <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="{{ item.service_type.name }}">
+                    {% else %}
+                        <img src="{% static 'placeholder.jpg' %}" class="img-thumbnail" alt="No Image Available">
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h5>{{ item.service_type.name }}</h5>
+                    <p>{{ item.service_type.description }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Price: {{ item.price }}</h5>
+                    <p>{{ item.description }}</p>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div> -->
+<!-- <div class="container mt-5">
+    <h3>Service Types for Category: {{ service_category.name }}</h3>
+    <h4>Selected Vehicle: {{ vehicle_variant.make.name }} {{ vehicle_variant.model_name }} ({{ vehicle_variant.year }})</h4>
+    <ul class="list-group">
+        {% for item in service_type_prices %}
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-2">
+                    {% if item.service_type.image %}
+                        <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="{{ item.service_type.name }}">
+                    {% else %}
+                        <img src="{% static 'placeholder.jpg' %}" class="img-thumbnail" alt="No Image Available">
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h5>{{ item.service_type.name }}</h5>
+                    <p>{{ item.service_type.description }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Price: {{ item.price }}</h5>
+                    <p>{{ item.description }}</p>
+                    <button class="btn btn-primary" onclick="addToCart('{{ item.service_type.id }}')">Add to Cart</button>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+     Cart Popup Modal -->
+    <!-- <div class="modal" id="cartModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Your Cart</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div> --> 
+<div class="container mt-5">
+    <div class="row">
+        <!-- Left side: Service Types (70%) -->
+        <div class="col-md-8">
+            <h3>{{ service_category.name }}</h3>
+            <h4>{{ vehicle_variant.make.name }} {{ vehicle_variant.model_name }} ({{ vehicle_variant.year }})</h4>
+            <ul class="list-group">
+                {% for item in service_type_prices %}
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-3">
+                            {% if item.service_type.image %}
+                                <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="{{ item.service_type.name }}">
+                            {% else %}
+                                <img src="{% static 'placeholder.jpg' %}" class="img-thumbnail" alt="No Image Available">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-5">
+                            <h5>{{ item.service_type.name }}</h5>
+                            <p>{{ item.service_type.description }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Price: ₹{{ item.price }}</h5>
+                            <button class="btn btn-primary" onclick="addToCart('{{ item.service_type.id }}')">Add to Cart</button>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Right side: Cart (30%) -->
+        <div class="col-md-4">
+            <div class="sticky-top">
+                <h4>Your Cart</h4>
+                <div id="cartContent">
+                    <!-- Cart content will be loaded here -->
+                    <h6>Vehicle: {{ vehicle_variant.make.name }} {{ vehicle_variant.model_name }}</h6>
+                    <ul class="list-group" id="cart-items-list">
+                        {% for item in cart_items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-cart-id="{{ item.id }}">
+                            <span>{{ item.service_type.name }} - ₹{{ item.service_type.service_prices.first.price }}</span>
+                            <button class="btn btn-danger btn-sm" onclick="removeFromCart('{{ item.id }}')">Remove</button>
+                        </li>
+                        
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+function addToCart(serviceTypeId) {
+    fetch(`/add_to_cart/${serviceTypeId}/`, { // Include serviceTypeId in the URL
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            // Any additional data you want to send can be included here
+        })
+    }).then(response => response.json())
+      .then(data => {
+        if (data.message === 'Added to cart successfully') {
+            alert('Service added to cart');
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+
+// Function to load the cart popup content
+// function loadCart() {
+//     fetch('/view_cart/')
+//         .then(response => response.text())
+//         .then(html => {
+//             document.querySelector('.modal-body').innerHTML = html;
+//             var cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
+//             cartModal.show();
+//         });
+// }
+
+function loadCart() {
+    fetch('/view_cart/')
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector('#cartContent').innerHTML = data.cart_html;  // Update cart section with the latest data
+        })
+        .catch(error => {
+            console.error('Error loading cart:', error);
+        });
+}
+
+// Remove item from cart
+// function removeFromCart(cartItemId) {
+//     fetch(`/remove_from_cart/${cartItemId}/`, {
+//         method: 'POST',
+//         headers: {
+//             'X-CSRFToken': '{{ csrf_token }}'
+//         }
+//     }).then(response => response.json())
+//       .then(data => {
+//         if (data.message === 'Removed from cart') {
+//             loadCart();
+//         }
+//     });
+// }
+// function removeFromCart(cartItemId) {
+//     fetch(`/remove_from_cart/${cartItemId}/`, {
+//         method: 'POST',
+//         headers: {
+//             'X-CSRFToken': '{{ csrf_token }}',
+//             'Content-Type': 'application/json'
+//         }
+//     }).then(response => response.json())
+//       .then(data => {
+//         if (data.message === 'Removed from cart') {
+//             window.location.reload();  // Reload the page to reflect the removed item
+//         } else {
+//             alert('Failed to remove the item from the cart.');
+//         }
+//     });
+// }
+function removeFromCart(cartItemId) {
+    fetch(`/remove_from_cart/${cartItemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',  // Ensure CSRF token is included
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'Removed from cart') {
+            // Remove the item from the DOM without reloading the page
+            const cartItemElement = document.querySelector(`[data-cart-id="${cartItemId}"]`);
+            cartItemElement.remove();
+        } else {
+            alert('Failed to remove the item from the cart.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+
+</script>
+
+  
+
+{%endblock%}

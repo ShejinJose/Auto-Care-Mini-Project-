@@ -1,0 +1,55 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+<!-- <div class="modal" id="cartModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Your Cart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Vehicle: {{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h6>
+                <ul class="list-group">
+                    {% for item in cart_items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.service_type.name }} - ₹{{ item.service_type.service_prices.first.price }}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeFromCart(parseInt('{{ item.id }}'))">Remove</button>
+
+
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function removeFromCart(cartItemId) {
+    fetch(`/remove_from_cart/${cartItemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    }).then(response => response.json())
+      .then(data => {
+        if (data.message === 'Removed from cart') {
+            window.location.reload();
+        }
+    });
+}
+</script> -->
+<h6>Vehicle: {{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h6>
+<ul class="list-group">
+    {% for item in cart_items %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>{{ item.service_type.name }} - ₹{{ item.service_type.service_prices.first.price }}</span>
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <button class="btn btn-danger btn-sm" onclick="removeFromCart('{{ item.id }}')">Remove</button>
+
+    </li>
+    {% endfor %}
+</ul>
+{%endblock%}
+

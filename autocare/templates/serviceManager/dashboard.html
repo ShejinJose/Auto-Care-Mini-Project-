@@ -128,7 +128,7 @@
                               <label for="mechanic">Select Mechanic</label>
                               <select name="mechanic" class="form-control" id="mechanic">
                                   {% for mechanic in mechanics %}
-                                  <option value="{{ mechanic.id }}">{{ mechanic.email }}</option>
+                                  <option value="{{ mechanic.CustomUser.id }}">{{ mechanic }}</option>
                                   {% endfor %}
                               </select>
                           </div>

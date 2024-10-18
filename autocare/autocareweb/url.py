@@ -22,14 +22,24 @@ urlpatterns = [
     #///////////////  Vehicle Select /////////////
     path('select-vehicle/', views.select_vehicle, name='select_vehicle'),
     path('add_vehicle_number/<int:variant_id>/', views.add_vehicle_number, name='add_vehicle_number'),
-     path('vehicle-brand/', views.vehicle_brand, name='vehicle_brand'),
+    path('vehicle-brand/', views.vehicle_brand, name='vehicle_brand'),
 
     # URL for displaying variants of a selected brand
     # path('brand-variants/<int:brand_id>/', views.brand_variants, name='brand_variants'),
     path('brand/<int:brand_id>/variants/', views.vehicle_variants, name='vehicle_variants'),
 
+    #////////////////// Services For Customers ///////////////////////
+    
+     path('service/service-categories/', views.customer_service_category, name='customer_service_category'),
+    # Customer view for service types of a specific category
+    path('service/service-types/<int:category_id>/', views.customer_service_type, name='customer_service_type'),
 
-    # path('add-vehicle/', views.add_vehicle, name='add_vehicle'),
+    #////////////////// Service Cart /////////////////////////////////
+
+    path('add_to_cart/<int:service_type_id>/', views.add_to_cart, name='add_to_cart'),
+    path('view_cart/', views.view_cart, name='view_cart'),
+    path('remove_from_cart/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
+
 
     #///////////////   Password Reset///////////////////////
 
@@ -68,12 +78,21 @@ urlpatterns = [
     path('service_manager_list/', service_manager_list, name='service_manager_list'),
     path('delete_service_manager/<str:email>/', delete_service_manager, name='delete_service_manager'),
     path('add_service_manager/', views.add_service_manager, name='add_service_manager'),
+    # path('mechanic_list/', views.mechanic_list, name='mechanic_list'),
+
+    # path('mechanics/update_level/<int:mechanic_id>/', views.update_mechanic_level, name='update_mechanic_level'),
+
+    # path('delete_mechanic/<str:email>/', views.delete_mechanic, name='delete_mechanic'),
+    # path('add_mechanic/', views.add_mechanic, name='add_mechanic'),
+
     path('mechanic_list/', views.mechanic_list, name='mechanic_list'),
-
     path('mechanics/update_level/<int:mechanic_id>/', views.update_mechanic_level, name='update_mechanic_level'),
-
     path('delete_mechanic/<str:email>/', views.delete_mechanic, name='delete_mechanic'),
     path('add_mechanic/', views.add_mechanic, name='add_mechanic'),
+    path('mechanic_profile/<str:email>/', views.mechanic_profile, name='mechanic_profile'),  # New URL for profile
+    path('mechanic/<int:mechanic_id>/edit/', views.edit_mechanic_profile, name='edit_mechanic_profile'),
+
+
     path('cst_admin/vehicle-make/create/', views.create_vehicle_make, name='create_vehicle_make'),
     path('cst_admin/vehicle-model/create/', views.create_vehicle_model, name='create_vehicle_model'),
     path('cst_admin/manage_vehicle', views.manage_vehicle, name='manage_vehicle'),
@@ -104,6 +123,13 @@ urlpatterns = [
     path('cst_admin/service-types/edit/<int:pk>/', views.edit_service_type, name='edit_service_type'),
     path('cst_admin/service-types/delete/<int:pk>/', views.delete_service_type, name='delete_service_type'),
 
+    #///////////////////////   Service Price ///////////////////////////////////////
+    path('cst_admin/service_price/brands/', views.brands, name='brands'),
+    path('cst_admin/service_price/brands/<int:make_id>/variants/', views.variants, name='variants'),
+    path('cst_admin/service_price/variants/<int:variant_id>/categories/', views.service_category, name='service_category'),
+    path('cst_admin/service_price/categories/<int:category_id>/variants/<int:variant_id>/types/', views.service_type, name='service_type'),
+    path('cst_admin/service_price/types/<int:service_type_id>/variants/<int:variant_id>/add_price/', views.add_service_price, name='add_service_price'),
+    path('cst_admin/edit_service_price/<int:service_price_id>/', views.edit_service_price, name='edit_service_price'),
    
     #////////////////////   CUSTOMER PROFILE ///////////////
      path('customer_profile/', views.customer_profile, name='customer_profile'),

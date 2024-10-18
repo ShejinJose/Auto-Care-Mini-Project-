@@ -135,6 +135,17 @@ class ServicePrice(models.Model):
         return f"{self.service_type.name} for {self.vehicle_model} - ₹{self.price} INR"
     
 
+#///////////////// Service cart ///////////////////////////
+class ServiceCart(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # User who owns the cart
+    service_type = models.ForeignKey(ServiceType, on_delete=models.CASCADE)  # Service type added to the cart
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)  # Selected vehicle
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cart: {self.user.email} - {self.service_type.name} for {self.vehicle.registration_number}"
+    
+
 
 #//////////////////////////  slot list ////////////////////////
 
@@ -196,18 +207,19 @@ class AllocatedMechanic(models.Model):
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-class MechanicLevel(models.TextChoices):
-    SENIOR = 'senior', _('Senior Level')
-    MEDIUM = 'medium', _('Medium Level')
-    ENTRY = 'entry', _('Entry Level')
 
-class MechanicStatus(models.TextChoices):
-    WORKING = 'working', _('Working')
-    ACTIVE = 'active', _('Active')
-    ABSENTEES = 'absentees', _('Absentees')
+class MechanicLevel(models.IntegerChoices):
+    SENIOR = 1, _('Senior Level')
+    MEDIUM = 2, _('Medium Level')
+    ENTRY = 3, _('Entry Level')
+
+class MechanicStatus(models.IntegerChoices):
+    WORKING = 1, _('Working')
+    ACTIVE = 2, _('Active')
+    ABSENTEES = 3, _('Absentees')
 
 class Mechanic(models.Model):
-    mechanic_email = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'mechanic'}, primary_key=True)
+    mechanic = models.OneToOneField(CustomUser, on_delete=models.CASCADE, default=1)
     status = models.IntegerField(choices=MechanicStatus.choices, default=MechanicStatus.ACTIVE)
     level = models.IntegerField(choices=MechanicLevel.choices, default=MechanicLevel.ENTRY)
 

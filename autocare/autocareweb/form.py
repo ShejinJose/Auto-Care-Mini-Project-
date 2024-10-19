@@ -113,29 +113,55 @@ class ManagerAllocationForm(forms.Form):
     )
 
 
+# class AssignMechanicForm(forms.Form):
+#     slot_id = forms.CharField(widget=forms.HiddenInput())  # Hidden field to store the slot ID
+#     mechanic = forms.ModelChoiceField(
+#         queryset=CustomUser.objects.filter(role=UserRole.MECHANIC),
+#         label="Select Mechanic"
+#     )
 class AssignMechanicForm(forms.Form):
-    slot_id = forms.CharField(widget=forms.HiddenInput())  # Hidden field to store the slot ID
     mechanic = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role=UserRole.MECHANIC),
-        label="Select Mechanic"
+        queryset=Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE),
+        required=True
     )
+    slot_id = forms.CharField(widget=forms.HiddenInput())
+
 
 from django import forms
 from .models import AllocatedMechanic, CustomUser, Slot
 
-class MechanicAllocationForm(forms.ModelForm):
+class MechanicAllocationForm(forms.Form):
     mechanic = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role=UserRole.MECHANIC),
-        label="Select Mechanic"
+        queryset=Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE),
+        label="Select Senior Mechanic",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-    slot = forms.ModelChoiceField(
-        queryset=Slot.objects.all(),
-        label="Select Slot"
-    )
+   
+  
 
-    class Meta:
-        model = AllocatedMechanic
-        fields = ['mechanic', 'slot']
+# class MechanicAllocationForm(forms.ModelForm):
+#     class Meta:
+#         model = AllocatedMechanic
+#         fields = ['mechanic', 'slot']
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['mechanic'].queryset = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
+
+
+# class MechanicAllocationForm(forms.ModelForm):
+#     mechanic = forms.ModelChoiceField(
+#         queryset=CustomUser.objects.filter(role=UserRole.MECHANIC),
+#         label="Select Mechanic"
+#     )
+#     slot = forms.ModelChoiceField(
+#         queryset=Slot.objects.all(),
+#         label="Select Slot"
+#     )
+
+#     class Meta:
+#         model = AllocatedMechanic
+#         fields = ['mechanic', 'slot']
 
 
 #/////////////////////   Change Password form ?//////////////

@@ -108,6 +108,7 @@ urlpatterns = [
 
     path('serviceManager/dashboard/', views.manager_dashboard, name='manager_dashboard'),
     path('manager/allocate_mechanic/<slug:slot_slug>/', views.allocate_mechanic, name='allocate_mechanic'),
+    path('remove-mechanic/', views.remove_mechanic, name='remove_mechanic'),
 
 
 

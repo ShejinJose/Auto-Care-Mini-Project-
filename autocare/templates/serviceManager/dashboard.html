@@ -75,72 +75,137 @@
 
 
 
-      <div class="container mt-5">
-          <h2 class="mb-4">Assigned Slots</h2>
-          <table id="slotsTable" class="table table-striped table-bordered">
-              <thead>
-                  <tr>
-                      <th>Slot Name</th>
-                      <th>Assigned Mechanic</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {% for allocation in assigned_slots %}
-                  <tr>
-                      <td>{{ allocation.slot.slotname }}</td>
-                      <td>
-                          {% if allocation.slot.mechanic %}
-                              {{ allocation.slot.mechanic.email }}
-                              <button class="btn btn-warning" data-toggle="modal" data-target="#reallocateMechanicModal{{ allocation.slot.slug }}">Reallocate Mechanic</button>
-                          {% else %}
-                              No mechanic assigned
-                              <button class="btn btn-primary" data-toggle="modal" data-target="#allocateMechanicModal{{ allocation.slot.slug }}">Allocate Mechanic</button>
-                          {% endif %}
-                      </td>
-                      <td>{{ allocation.slot.get_status_display }}</td>
-                  </tr>
-                  {% empty %}
-                  <tr>
-                      <td colspan="4" class="text-center">No slots have been assigned to you.</td>
-                  </tr>
-                  {% endfor %}
-              </tbody>
-          </table>
-      </div>
+<div class="container mt-5">
+  <h2 class="mb-4">Assigned Slots</h2>
+  <table id="slotsTable" class="table table-striped table-bordered">
+      <thead>
+          <tr>
+              <th>Slot Name</th>
+              <th>Assigned Mechanic</th>
+              <th>Actions</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for allocation in assigned_slots %}
+          <tr>
+              <td>{{ allocation.slot.slotname }}</td>
+              <td>
+                  {% if allocation.slot.mechanic %}
+                      {{ allocation.slot.mechanic.email }}
+                  {% else %}
+                      No mechanic assigned
+                  {% endif %}
+              </td>
+              <td>
+                {% if allocation.slot.mechanic %}
+                    <!-- Show Remove button if mechanic is assigned -->
+                    <button class="btn btn-danger remove-button" data-slot-id="{{ allocation.slot.id }}">
+                        Remove Mechanic
+                    </button>
+                {% else %}
+                    <!-- Show Allocate button if no mechanic is assigned -->
+                    <button class="btn btn-primary allocate-button" data-slot-slug="{{ allocation.slot.slug }}" data-toggle="modal" data-target="#allocateMechanicModal{{ allocation.slot.slug }}">
+                        Allocate Mechanic
+                    </button>
+                {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+              <td colspan="3" class="text-center">No slots have been assigned to you.</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+</div>
+
+<!-- Include jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+<script>
+$(document).ready(function() {
+  $(".remove-button").on("click", function() {
+      const slotId = $(this).data("slot-id");
+      if (confirm("Are you sure you want to remove the mechanic from this slot?")) {
+          $.ajax({
+              type: "POST",
+              url: "{% url 'remove_mechanic' %}", // Update this URL to your remove mechanic view
+              data: {
+                  slot_id: slotId,
+                  csrfmiddlewaretoken: '{{ csrf_token }}' // Include CSRF token
+              },
+              success: function(response) {
+                  alert("Mechanic removed successfully!");
+                  location.reload();  // Refresh the page to reflect changes
+              },
+              error: function() {
+                  alert("There was an error removing the mechanic.");
+              }
+          });
+      }
+  });
+});
+</script>
+
+
+<!-- Modal for allocation -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+    $(".allocate-form").on("submit", function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const url = form.attr("action");
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: form.serialize(),
+            success: function(response) {
+                alert("Mechanic allocated successfully!");
+                location.reload();  // Optional: Reload the page to reflect changes
+            },
+            error: function() {
+                alert("There was an error allocating the mechanic.");
+            }
+        });
+    });
+});
+</script>
+
+{% for allocation in assigned_slots %}
+<div class="modal fade" id="allocateMechanicModal{{ allocation.slot.slug }}" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Allocate Mechanic for {{ allocation.slot.slotname }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" class="allocate-form" action="{% url 'allocate_mechanic' allocation.slot.slug %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="mechanic">Select Senior Mechanic</label>
+                        <select name="mechanic" class="form-control">
+                            {% for mechanic in mechanics %}
+                                <option value="{{ mechanic.id }}">{{ mechanic.mechanic.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Allocate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+      
+
   
-      <!-- Allocation Modal -->
-      {% for allocation in assigned_slots %}
-      <div class="modal fade" id="allocateMechanicModal{{ allocation.slot.slug }}" tabindex="-1" role="dialog" aria-labelledby="allocateMechanicModalLabel{{ allocation.slot.slug }}" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                  <div class="modal-header">
-                      <h5 class="modal-title" id="allocateMechanicModalLabel{{ allocation.slot.slug }}">Allocate Mechanic for {{ allocation.slot.slotname }}</h5>
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                          <span aria-hidden="true">&times;</span>
-                      </button>
-                  </div>
-                  <div class="modal-body">
-                      <form method="post" action="{% url 'allocate_mechanic' allocation.slot.slug %}">
-                          {% csrf_token %}
-                          <div class="form-group">
-                              <label for="mechanic">Select Mechanic</label>
-                              <select name="mechanic" class="form-control" id="mechanic">
-                                  {% for mechanic in mechanics %}
-                                  <option value="{{ mechanic.CustomUser.id }}">{{ mechanic }}</option>
-                                  {% endfor %}
-                              </select>
-                          </div>
-                          <button type="submit" class="btn btn-success">Allocate</button>
-                      </form>
-                  </div>
-              </div>
-          </div>
-      </div>
-      {% endfor %}
-  
-      <!-- Reallocation Modal -->
     
   
       <!-- Include jQuery and Bootstrap JS -->

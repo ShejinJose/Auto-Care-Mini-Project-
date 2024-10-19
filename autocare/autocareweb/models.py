@@ -224,6 +224,6 @@ class Mechanic(models.Model):
     level = models.IntegerField(choices=MechanicLevel.choices, default=MechanicLevel.ENTRY)
 
     def __str__(self):
-        return f"{self.userid.email} - {self.get_level_display()}"
+        return f"{self.mechanic.email} - {self.get_level_display()}"
 
 

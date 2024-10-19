@@ -516,6 +516,43 @@ def edit_profile(request):
 
 #/////////////////Service Manager Dashboard/////////////////////////
 
+# @login_required
+# def manager_dashboard(request):
+#     # Get the logged-in service manager
+#     manager = request.user
+
+#     # Retrieve the slots assigned to the service manager
+#     assigned_slots = AllocatedManager.objects.filter(manager=manager)
+
+#     # Initialize the mechanic variable
+#     mechanic = CustomUser.objects.filter(role ='mechanic')
+#     print(mechanic)
+
+#     if request.method == 'POST':
+#         form = AssignMechanicForm(request.POST)
+#         if form.is_valid():
+#             slot_id = form.cleaned_data['slot_id']
+#             mechanic = form.cleaned_data['mechanic']
+
+#             # Assign the mechanic to the selected slot
+#             slot = Slot.objects.get(id=slot_id)
+#             slot.mechanic = mechanic
+#             slot.save()
+
+#             return redirect('manager_dashboard')  # Refresh the dashboard after assigning the mechanic
+#     else:
+#         form = AssignMechanicForm()
+
+#     return render(
+#         request, 
+#         'serviceManager/dashboard.html', 
+#         {
+#             'assigned_slots': assigned_slots,
+#             'mechanics': mechanic,  # mechanic will be None in GET requests
+#             'form': form,
+#             'user': request.user
+#         }
+#     )
 @login_required
 def manager_dashboard(request):
     # Get the logged-in service manager
@@ -524,9 +561,8 @@ def manager_dashboard(request):
     # Retrieve the slots assigned to the service manager
     assigned_slots = AllocatedManager.objects.filter(manager=manager)
 
-    # Initialize the mechanic variable
-    mechanic = CustomUser.objects.filter(role ='mechanic')
-    print(mechanic)
+    # Filter only senior mechanics who are not "working"
+    mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
 
     if request.method == 'POST':
         form = AssignMechanicForm(request.POST)
@@ -536,8 +572,12 @@ def manager_dashboard(request):
 
             # Assign the mechanic to the selected slot
             slot = Slot.objects.get(id=slot_id)
-            slot.mechanic = mechanic
+            slot.mechanic = mechanic.user
             slot.save()
+
+            # Update mechanic's status to working
+            mechanic.status = MechanicStatus.WORKING
+            mechanic.save()
 
             return redirect('manager_dashboard')  # Refresh the dashboard after assigning the mechanic
     else:
@@ -548,7 +588,7 @@ def manager_dashboard(request):
         'serviceManager/dashboard.html', 
         {
             'assigned_slots': assigned_slots,
-            'mechanics': mechanic,  # mechanic will be None in GET requests
+            'mechanics': mechanics,  # Senior mechanics who are available
             'form': form,
             'user': request.user
         }
@@ -556,16 +596,114 @@ def manager_dashboard(request):
 
 
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
-def allocate_mechanic(request):
+
+
+
+def allocate_mechanic(request, slot_slug):
+    slot = get_object_or_404(Slot, slug=slot_slug)
+
+    # Filter only senior mechanics who are not "working"
+    available_mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
+
     if request.method == "POST":
         form = MechanicAllocationForm(request.POST)
+
         if form.is_valid():
-            form.save()
-            return redirect('manager_dashboard')
-    else:
-        form = MechanicAllocationForm()
-    return render(request, 'manager_dashboard', {'form': form})
+            mechanic = form.cleaned_data['mechanic']
+
+            # Assign the mechanic to the slot
+            slot.mechanic = mechanic.mechanic  # Assign the CustomUser instance from the Mechanic object
+            slot.save()
+
+            # Update mechanic status to working
+            mechanic.status = MechanicStatus.WORKING
+            mechanic.save()
+
+            # Add record to AllocatedMechanic table
+            AllocatedMechanic.objects.create(mechanic=mechanic.mechanic, manager=request.user, slot=slot)
+
+            return JsonResponse({'message': 'Mechanic allocated successfully!'})
+
+        else:
+            # Log errors to debug form issues
+            print("Form errors: ", form.errors)
+
+    return JsonResponse({'error': 'Invalid form submission'}, status=400)
+
+
+from django.views.decorators.http import require_POST
+
+@require_POST
+@login_required
+def remove_mechanic(request):
+    slot_id = request.POST.get('slot_id')
+    slot = get_object_or_404(Slot, id=slot_id)
+
+    # Get the allocated mechanic
+    allocated_mechanic = AllocatedMechanic.objects.filter(slot=slot).first()
+
+    if allocated_mechanic:
+        # Remove mechanic from slot
+        slot.mechanic = None
+        slot.save()
+
+        # Update mechanic's status to free
+        mechanic = allocated_mechanic.mechanic
+        mechanic_instance = Mechanic.objects.get(mechanic=mechanic)
+        mechanic_instance.status = MechanicStatus.ACTIVE  # Set to active/free status
+        mechanic_instance.save()
+
+        # Remove the allocation record
+        allocated_mechanic.delete()
+
+    return JsonResponse({'message': 'Mechanic removed successfully!'})
+
+
+
+
+
+
+# def allocate_mechanic(request, slot_slug):
+#     slot = get_object_or_404(Slot, slug=slot_slug)
+
+#     # Filter only senior mechanics who are not "working"
+#     available_mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
+
+#     if request.method == "POST":
+#         form = MechanicAllocationForm(request.POST)
+#         if form.is_valid():
+#             mechanic = form.cleaned_data['mechanic']
+
+#             # Assign the mechanic to the slot
+#             slot.mechanic = mechanic.user
+#             slot.save()
+
+#             # Update mechanic status to working
+#             mechanic.status = MechanicStatus.WORKING
+#             mechanic.save()
+
+#             # Add record to AllocatedMechanic table
+#             AllocatedMechanic.objects.create(mechanic=mechanic.user, manager=request.user, slot=slot)
+
+#             return redirect('manager_dashboard')
+#     else:
+#         form = MechanicAllocationForm()
+
+#     return render(request, 'allocate_mechanic.html', {'slot': slot, 'mechanics': available_mechanics, 'form': form})
+
+
+# def allocate_mechanic(request):
+#     if request.method == "POST":
+#         form = MechanicAllocationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('manager_dashboard')
+#     else:
+#         form = MechanicAllocationForm()
+#     return render(request, 'manager_dashboard', {'form': form})
 
 # def reallocate_mechanic(request, allocation_id):
 #     allocation = get_object_or_404(AllocatedMechanic, id=allocation_id)

@@ -43,13 +43,45 @@ function removeFromCart(cartItemId) {
 <h6>Vehicle: {{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h6>
 <ul class="list-group">
     {% for item in cart_items %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
+    <li class="list-group-item d-flex justify-content-between align-items-center" data-cart-id="{{ item.id }}">
         <span>{{ item.service_type.name }} - ₹{{ item.service_type.service_prices.first.price }}</span>
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <button class="btn btn-danger btn-sm" onclick="removeFromCart('{{ item.id }}')">Remove</button>
-
     </li>
     {% endfor %}
 </ul>
+
+
+<script>
+
+function removeFromCart(cartItemId) {
+    fetch(`/remove_from_cart/${cartItemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'Removed from cart') {
+            // Remove the item from the DOM without reloading the page
+            document.querySelector(`[data-cart-id="${cartItemId}"]`).remove();
+
+            // Optionally, update the "Add to Cart" button back
+            const serviceTypeId = data.service_type_id;
+            const addToCartButton = document.querySelector(`[data-service-type-id="${serviceTypeId}"]`);
+            if (addToCartButton) {
+                addToCartButton.innerHTML = '<button class="btn btn-primary" onclick="addToCart(\'' + serviceTypeId + '\')">Add to Cart</button>';
+            }
+        } else {
+            alert('Failed to remove the item from the cart.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+</script>
 {%endblock%}
 

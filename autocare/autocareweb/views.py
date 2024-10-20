@@ -184,6 +184,39 @@ def customer_service_category(request):
 from django.shortcuts import render, get_object_or_404
 from .models import ServiceCategory, ServiceType, ServicePrice, Vehicle, VehicleModel
 
+# def customer_service_type(request, category_id):
+#     # Get the selected vehicle from the session
+#     selected_vehicle_id = request.session.get('selected_vehicle_id')
+
+#     # Ensure the vehicle is selected
+#     if not selected_vehicle_id:
+#         return redirect('select_vehicle')  # Redirect to vehicle selection if not selected
+
+#     # Get the selected vehicle model
+#     selected_vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id)
+#     vehicle_variant = selected_vehicle.vehicle_model
+
+#     # Get the service category and service types for this category
+#     service_category = get_object_or_404(ServiceCategory, id=category_id)
+#     service_types = ServiceType.objects.filter(category=service_category)
+
+#     # Fetch service prices for each service type for the selected vehicle variant
+#     service_type_prices = []
+#     for service_type in service_types:
+#         service_price = ServicePrice.objects.filter(service_type=service_type, vehicle_model=vehicle_variant).first()
+#         service_type_prices.append({
+#             'service_type': service_type,
+#             'price': service_price.price if service_price else 'Price not available',
+#             'description': service_price.description if service_price else ''
+#         })
+
+#     return render(request, 'service/cst_service_type.html', {
+#         'service_category': service_category,
+#         'service_type_prices': service_type_prices,
+#         'vehicle_variant': vehicle_variant
+#     })
+
+
 def customer_service_type(request, category_id):
     # Get the selected vehicle from the session
     selected_vehicle_id = request.session.get('selected_vehicle_id')
@@ -204,10 +237,17 @@ def customer_service_type(request, category_id):
     service_type_prices = []
     for service_type in service_types:
         service_price = ServicePrice.objects.filter(service_type=service_type, vehicle_model=vehicle_variant).first()
+        
+        # Check if the service type is already in the user's cart for this vehicle
+        is_in_cart = ServiceCart.objects.filter(
+            user=request.user, service_type=service_type, vehicle=selected_vehicle
+        ).exists()
+        
         service_type_prices.append({
             'service_type': service_type,
             'price': service_price.price if service_price else 'Price not available',
-            'description': service_price.description if service_price else ''
+            'description': service_price.description if service_price else '',
+            'is_in_cart': is_in_cart  # Pass the cart status
         })
 
     return render(request, 'service/cst_service_type.html', {
@@ -215,6 +255,8 @@ def customer_service_type(request, category_id):
         'service_type_prices': service_type_prices,
         'vehicle_variant': vehicle_variant
     })
+
+
 
 
 #////////////////////////////// Service Cart ////////////////////////
@@ -294,6 +336,24 @@ from django.contrib.auth.decorators import login_required
 #     ServiceCart.objects.create(user=user, service_type=service_type, vehicle=vehicle)
 
 #     return redirect('customer_service_type', category_id=service_type.category.id)
+from django.contrib.auth.decorators import login_required
+# @login_required
+# def add_to_cart(request, service_type_id):
+#     if request.method == 'POST':
+#         user = request.user
+#         service_type = get_object_or_404(ServiceType, id=service_type_id)
+#         selected_vehicle_id = request.session.get('selected_vehicle_id')
+
+#         if not selected_vehicle_id:
+#             return redirect('select_vehicle')  # Redirect to vehicle selection if not selected
+
+#         vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id)
+
+#         # Create or update the service cart
+#         ServiceCart.objects.create(user=user, service_type=service_type, vehicle=vehicle)
+
+#         return JsonResponse({'message': 'Added to cart successfully'})
+#     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 @login_required
 def add_to_cart(request, service_type_id):
@@ -307,10 +367,10 @@ def add_to_cart(request, service_type_id):
 
         vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id)
 
-        # Create or update the service cart
-        ServiceCart.objects.create(user=user, service_type=service_type, vehicle=vehicle)
+        # Create a new ServiceCart entry
+        cart_item = ServiceCart.objects.create(user=user, service_type=service_type, vehicle=vehicle)
 
-        return JsonResponse({'message': 'Added to cart successfully'})
+        return JsonResponse({'message': 'Added to cart successfully', 'cart_item_id': cart_item.id})
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
@@ -345,11 +405,15 @@ from django.http import JsonResponse
 
 
 
-def remove_from_cart(request, cart_id):
-    print(request)  # Just to make use of the request variable
-    cart_item = get_object_or_404(ServiceCart, id=cart_id)
-    cart_item.delete()
-    return JsonResponse({'message': 'Removed from cart'})
+@login_required
+def remove_from_cart(request, cart_item_id):
+    if request.method == 'POST':
+        cart_item = get_object_or_404(ServiceCart, id=cart_item_id)
+        service_type_id = cart_item.service_type.id
+        cart_item.delete()
+        return JsonResponse({'message': 'Removed from cart', 'service_type_id': service_type_id})
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
 
 
 

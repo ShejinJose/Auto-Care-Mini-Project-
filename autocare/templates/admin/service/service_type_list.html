@@ -13,6 +13,13 @@
         .add-btn {
             margin-bottom: 20px;
         }
+        .img-fit {
+            width: 100%;
+            height: 300px; /* Adjust this height as needed */
+            object-fit: cover;
+            object-position: center;
+            border-radius: 0.25rem; /* Matches the card's border-radius */
+        }
     </style>
 </head>
 <body>
@@ -31,11 +38,12 @@
         <div class="col-md-4">
             <div class="card">
                 {% if service_type.image %}
-                    <img src="{{ service_type.image.url }}" class="card-img-top" alt="{{ service_type.name }}">
+                    <img src="{{ service_type.image.url }}" class="card-img-top img-fit" alt="{{ service_type.name }}">
                 {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ service_type.name }}</h5>
                     <p class="card-text">{{ service_type.description }}</p>
+                    <p class="card-text"><strong>Service Time:</strong> {{ service_type.service_time }} Hr</p>
                     <a href="{% url 'edit_service_type' service_type.pk %}" class="btn btn-warning">Edit</a>
                     <!-- Delete Button -->
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ service_type.pk }}">

@@ -229,7 +229,7 @@ class ServiceCategoryForm(forms.ModelForm):
 class ServiceTypeForm(forms.ModelForm):
     class Meta:
         model = ServiceType
-        fields = ['name', 'image', 'description']
+        fields = ['name', 'image', 'description', 'service_time']
 
 
 class ServicePriceForm(forms.ModelForm):

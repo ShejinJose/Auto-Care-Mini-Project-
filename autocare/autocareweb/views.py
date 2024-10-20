@@ -376,29 +376,37 @@ def add_to_cart(request, service_type_id):
 
 
 # View Cart
-def view_cart(request):
-    vehicle_id = request.session.get('selected_vehicle_id')
-    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-    cart_items = ServiceCart.objects.filter(vehicle=vehicle)
-
-    return render(request, 'service/view_cart.html', {
-        'vehicle': vehicle,
-        'cart_items': cart_items,
-    })
-# from django.template.loader import render_to_string 
 # def view_cart(request):
 #     vehicle_id = request.session.get('selected_vehicle_id')
 #     vehicle = get_object_or_404(Vehicle, id=vehicle_id)
 #     cart_items = ServiceCart.objects.filter(vehicle=vehicle)
 
-#     # Render only the cart items section as a partial HTML
-#     cart_html = render_to_string('service/view_cart.html', {
+#     return render(request, 'service/view_cart.html', {
 #         'vehicle': vehicle,
 #         'cart_items': cart_items,
 #     })
 
-#     # Return the cart HTML as a JSON response
-#     return JsonResponse({'cart_html': cart_html})
+def view_cart(request):
+    vehicle_id = request.session.get('selected_vehicle_id')
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    cart_items = ServiceCart.objects.filter(vehicle=vehicle)
+
+    # Calculate total price and total service time
+    total_price = sum(item.service_type.service_prices.first().price for item in cart_items)
+    total_time = sum(item.service_type.service_time for item in cart_items)
+
+    # Convert time to hours and minutes
+    
+    return render(request, 'service/view_cart.html', {
+        'vehicle': vehicle,
+        'cart_items': cart_items,
+        'total_price': total_price,
+        'total_time': total_time,
+        
+    })
+
+
+
 
 # Remove from Cart
 from django.http import JsonResponse
@@ -413,6 +421,85 @@ def remove_from_cart(request, cart_item_id):
         cart_item.delete()
         return JsonResponse({'message': 'Removed from cart', 'service_type_id': service_type_id})
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
+#////////////////   Order Items //////////////////////////////////
+import uuid
+from django.shortcuts import get_object_or_404, redirect
+from .models import Order, OrderService, ServiceCart
+
+
+# def order_confirmation(request):
+#     user = request.user
+#     cart_items = ServiceCart.objects.filter(user=user)
+
+#     if cart_items.exists():
+#         vehicle = cart_items.first().vehicle  # Assuming all cart items are for the same vehicle
+
+#         # Render the order confirmation page with cart details (no order_id yet)
+#         return render(request, 'service/order_confirmation.html', {
+#             'cart_items': cart_items,
+#             'vehicle': vehicle,
+#         })
+#     else:
+#         return redirect('view_cart')  # If no cart items, redirect back to the cart
+
+def order_confirmation(request):
+    user = request.user
+    cart_items = ServiceCart.objects.filter(user=user)
+
+    if cart_items.exists():
+        vehicle = cart_items.first().vehicle  # Assuming all cart items are for the same vehicle
+
+        # Calculate total price and total service time
+        total_price = sum(item.service_type.service_prices.first().price for item in cart_items)
+        total_time = sum(item.service_type.service_time for item in cart_items)
+
+        # Convert time to hours and minutes if necessary (optional)
+
+        # Render the order confirmation page with cart details
+        return render(request, 'service/order_confirmation.html', {
+            'cart_items': cart_items,
+            'vehicle': vehicle,
+            'total_price': total_price,
+            'total_time': total_time,
+        })
+    else:
+        return redirect('view_cart')  # If no cart items, redirect back to the cart
+
+
+
+
+from django.http import JsonResponse
+import uuid  # For generating unique order ID
+
+def create_order(request):
+    if request.method == 'POST':
+        user = request.user
+        # No need for `order_id` from frontend, it will be generated here
+        cart_items = ServiceCart.objects.filter(user=user)
+
+        if cart_items.exists():
+            vehicle = cart_items.first().vehicle  # Assuming all cart items are for the same vehicle
+            
+            # Generate unique order ID
+            order_id = str(uuid.uuid4()).replace('-', '').upper()[:12]
+
+            # Create the order
+            order = Order.objects.create(user=user, vehicle=vehicle, order_id=order_id)
+
+            # Add the services to the order
+            for item in cart_items:
+                OrderService.objects.create(order=order, service_type=item.service_type, price=item.service_type.service_prices.first().price)
+
+            # Clear the cart after creating the order
+            cart_items.delete()
+
+            return JsonResponse({'success': True, 'order_id': order_id})  # Send back the order ID
+        else:
+            return JsonResponse({'success': False, 'message': 'Cart is empty'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 
 

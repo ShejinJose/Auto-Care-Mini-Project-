@@ -40,6 +40,10 @@ urlpatterns = [
     path('view_cart/', views.view_cart, name='view_cart'),
     path('remove_from_cart/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
 
+    #/////////////////////   Oreder Items ///////////////////////////
+    path('order_confirmation/', views.order_confirmation, name='order_confirmation'),
+    path('create_order/', views.create_order, name='create_order'),
+
 
 
     #///////////////   Password Reset///////////////////////

@@ -132,6 +132,38 @@ class ServiceCart(models.Model):
         return f"Cart: {self.user.email} - {self.service_type.name} for {self.vehicle.registration_number}"
     
 
+#//////// Order Service ///////////////////////////////////////////
+
+from django.db import models
+from django.utils import timezone
+
+class Order(models.Model):
+    ORDER_STATUS = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('confirmed', 'Confirmed'),
+    ]
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # User who placed the order
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)  # Vehicle selected for the order
+    order_id = models.CharField(max_length=20, unique=True)  # Unique order identifier
+    order_date = models.DateTimeField(default=timezone.now)  # Date when the order was placed
+    status = models.CharField(max_length=10, choices=ORDER_STATUS, default='pending')  # Order status
+    
+    def __str__(self):
+        return f"Order {self.order_id} by {self.user.email} for {self.vehicle.registration_number}"
+
+class OrderService(models.Model):
+    order = models.ForeignKey(Order, related_name='services', on_delete=models.CASCADE)  # The order this service belongs to
+    service_type = models.ForeignKey(ServiceType, on_delete=models.CASCADE)  # The service being ordered
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # The price of the service
+
+    def __str__(self):
+        return f"{self.service_type.name} for order {self.order.order_id}"
+
+
+
+
 
 #//////////////////////////  slot list ////////////////////////
 

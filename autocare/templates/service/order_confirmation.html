@@ -1,0 +1,169 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+
+<!-- <h1>Order Confirmation</h1>
+
+ Display vehicle image and details -->
+<!-- <div class="card mb-4">
+    <div class="row g-0">
+        <div class="col-md-3">
+            <img src="{{ vehicle.vehicle_model.image.url }}" class="img-fluid rounded-start" alt="Vehicle Image" style="width: 200px; height: 200px; object-fit: cover;">
+        </div>
+        <div class="col-md-9">
+            <div class="card-body">
+                <h5 class="card-title">{{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h5>
+                <p class="card-text">Registration Number: {{ vehicle.registration_number }}</p>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<!-- Display selected service types -->
+<!-- <ul class="list-group">
+    {% for item in cart_items %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="Service Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px;">
+            <span>{{ item.service_type.name }} - ₹{{ item.service_type.service_prices.first.price }} ({{ item.service_type.service_time }} Hrs)</span>
+        </div>
+    </li>
+    {% endfor %}
+</ul> -->
+
+<!-- Total price and time -->
+<!-- <div class="row mt-4">
+    <div class="col-md-6 text-center">
+        <h6 class="display-6">Total Price: ₹{{ total_price }}</h6>
+    </div>
+    <div class="col-md-6 text-center">
+        <h6 class="display-6">Total Time: {{ total_time }} Hrs</h6>
+    </div>
+</div> -->
+
+<!-- Confirm Order button -->
+<!-- <div class="text-center mt-5">
+    <button class="btn btn-lg btn-primary" id="confirmOrderBtn" onclick="confirmOrder()">Confirm Order</button>
+</div>
+
+<script>
+function confirmOrder() {
+    fetch(`/create_order/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Order placed successfully!');
+            window.location.href = '/';  // Redirect to the homepage after successful order
+        } else {
+            alert('Failed to place the order.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>  -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Order Confirmation</h1>
+
+    <!-- Display vehicle image and details -->
+    <div class="card mb-4">
+        <div class="row g-0">
+            <div class="col-md-3">
+                <img src="{{ vehicle.vehicle_model.image.url }}" class="img-fluid rounded-start" alt="Vehicle Image" style="width: 100%; height: auto; object-fit: cover;">
+            </div>
+            <div class="col-md-9">
+                <div class="card-body">
+                    <h3 class="card-title">{{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h3>
+                    <p class="card-text"><strong>Registration Number:</strong> {{ vehicle.registration_number }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Display selected service types -->
+    <h4 class="mb-3">Selected Services</h4>
+    <ul class="list-group mb-4">
+        {% for item in cart_items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="Service Image" style="width: 80px; height: 80px; object-fit: cover; margin-right: 15px;">
+                <div>
+                    <h5>{{ item.service_type.name }}</h5>
+                    <p class="mb-0"><strong>Price:</strong> ₹{{ item.service_type.service_prices.first.price }}</p>
+                    <p class="mb-0"><strong>Time:</strong> {{ item.service_type.service_time }} Hrs</p>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Total price and time section -->
+    <div class="row text-center">
+        <div class="col-md-6">
+            <h3 class="font-weight-bold">Total Price: ₹{{ total_price }}</h3>
+        </div>
+        <div class="col-md-6">
+            <h3 class="font-weight-bold">Total Time: {{ total_time }} Hrs</h3>
+        </div>
+    </div>
+
+    <!-- Confirm Order button -->
+    <div class="text-center mt-5">
+        <button class="btn btn-lg btn-primary px-5 py-3" id="confirmOrderBtn" onclick="confirmOrder()">Confirm Order</button>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+function confirmOrder() {
+    fetch(`/create_order/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Order placed successfully!');
+            window.location.href = '/';  // Redirect to the homepage after successful order
+        } else {
+            alert('Failed to place the order.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+
+</body>
+</html>
+
+
+{%endblock%}

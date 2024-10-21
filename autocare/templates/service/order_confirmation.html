@@ -1,6 +1,8 @@
 {% extends 'partials/base.html' %}
 {%block content%}
 {% load static %}
+{% load custom_filters %}
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -59,6 +61,15 @@
         </div>
     </div>
 
+ <!-- Service Date Picker -->
+ <h4 class="mb-3">Pick a Date for Your Service</h4>
+ <div class="mb-4">
+     <label for="service_date">Select Service Date:</label>
+     <input type="date" id="service_date" name="service_date" class="form-control" 
+            min="{{ cart_items.first.cart_date|date:"Y-m-d" }}" 
+            max="{{ cart_items.first.cart_date|add_days:7 }}">
+ </div>
+
     <!-- Total price and time section -->
     <div class="row text-center">
         <div class="col-md-6">
@@ -69,9 +80,33 @@
         </div>
     </div>
 
+
+
+
+
     <!-- Confirm Order button -->
     <div class="text-center mt-5">
         <button class="btn btn-lg btn-primary px-5 py-3" id="confirmOrderBtn" onclick="confirmOrder()">Confirm Order</button>
+    </div>
+</div>
+
+<!-- Modal for displaying error message -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+                <!-- Error message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -80,7 +115,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-<script>
+<!-- <script>
 function confirmOrder() {
     fetch(`/create_order/`, {
         method: 'POST',
@@ -102,7 +137,35 @@ function confirmOrder() {
         console.error('Error:', error);
     });
 }
-</script>
+</script> -->
+<script>
+    function confirmOrder() {
+        const serviceDate = document.getElementById('service_date').value;
+    
+        fetch(`/create_order/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ service_date: serviceDate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Order placed successfully!');
+                window.location.href = '/';
+            } else {
+                // If there's an error, show the error message in the modal
+                document.getElementById('errorMessage').innerText = data.message;
+                $('#errorModal').modal('show');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
 
 </body>
 </html>

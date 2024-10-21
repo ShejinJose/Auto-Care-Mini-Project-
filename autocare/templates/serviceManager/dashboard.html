@@ -1,22 +1,22 @@
 {% extends 'partials/baseadmin.html' %}
 
 {% block content %}
-
- {% load static %}
   
- <div class="container-fluid">
+{% load static %}
+  
+<div class="container-fluid">
+  <!-- Navbar -->
   <div class="row">
     <div class="col-md-12">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
         <a class="navbar-brand" href="#">Manager Dashboard</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+              <a class="nav-link btn btn-outline-danger" href="{% url 'logout' %}">Logout</a>
             </li>
           </ul>
         </div>
@@ -24,205 +24,280 @@
     </div>
   </div>
 
+  <!-- Welcome Message -->
   <div class="row mt-4">
     <div class="col-md-12">
-      <h2>Welcome, {{ user.email }}</h2>
+      <h2 class="text-primary">Welcome, {{ user.email }}</h2>
+      <hr>
     </div>
   </div>
 
+  <!-- Messages and Assigned Slots Cards -->
   <div class="row mt-4">
     <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
           <h4>Messages</h4>
         </div>
         <div class="card-body">
           {% if messages %}
-            <ul>
+            <ul class="list-group">
               {% for message in messages %}
-                <li>{{ message }}</li>
+                <li class="list-group-item">{{ message }}</li>
               {% endfor %}
             </ul>
           {% else %}
-            <p>No messages available.</p>
+            <p class="text-muted">No messages available.</p>
           {% endif %}
         </div>
       </div>
     </div>
 
     <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
           <h4>Assigned Slots</h4>
         </div>
         <div class="card-body">
           {% if assigned_slots %}
-            <ul>
+            <ul class="list-group">
               {% for allocation in assigned_slots %}
-                <li>
-                  Slot Name: {{ allocation.slot.slotname }} - Status: {{ allocation.slot.get_status_display }}
+                <li class="list-group-item">
+                  Slot Name: <strong>{{ allocation.slot.slotname }}</strong> - 
+                  Status: <span class="badge badge-info">{{ allocation.slot.get_status_display }}</span>
                 </li>
               {% endfor %}
             </ul>
           {% else %}
-            <p>No slots have been assigned to you yet.</p>
+            <p class="text-muted">No slots have been assigned to you yet.</p>
           {% endif %}
         </div>
       </div>
     </div>
   </div>
-</div>
-
-
-
-<div class="container mt-5">
-  <h2 class="mb-4">Assigned Slots</h2>
-  <table id="slotsTable" class="table table-striped table-bordered">
-      <thead>
+  
+  <!-- Orders Table -->
+  <div class="container mt-5">
+    <h2 class="mb-4 text-primary">Orders for Assigned Slots</h2>
+    <div class="table-responsive">
+      <table id="ordersTable" class="table table-striped table-hover table-bordered shadow-sm">
+        <thead class="thead-dark">
           <tr>
-              <th>Slot Name</th>
-              <th>Assigned Mechanic</th>
-              <th>Actions</th>
+            <th>Slot Allocated</th>
+            <th>Order ID</th>
+            <th>Service Date</th>
+            <th>Vehicle</th>
+            <th>Service Details</th>
+            <th>Customer</th>
+            <th>Order Date</th>
           </tr>
-      </thead>
-      <tbody>
-          {% for allocation in assigned_slots %}
+        </thead>
+        <tbody>
+          {% for order in orders %}
           <tr>
-              <td>{{ allocation.slot.slotname }}</td>
-              <td>
-                  {% if allocation.slot.mechanic %}
-                      {{ allocation.slot.mechanic.email }}
-                  {% else %}
-                      No mechanic assigned
-                  {% endif %}
-              </td>
-              <td>
-                {% if allocation.slot.mechanic %}
-                    <!-- Show Remove button if mechanic is assigned -->
-                    <button class="btn btn-danger remove-button" data-slot-id="{{ allocation.slot.id }}">
-                        Remove Mechanic
-                    </button>
-                {% else %}
-                    <!-- Show Allocate button if no mechanic is assigned -->
-                    <button class="btn btn-primary allocate-button" data-slot-slug="{{ allocation.slot.slug }}" data-toggle="modal" data-target="#allocateMechanicModal{{ allocation.slot.slug }}">
-                        Allocate Mechanic
-                    </button>
-                {% endif %}
+            <td>{{ order.allocated_slot.slotname }}</td>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.service_date }}</td>
+            <td>
+              {{ order.vehicle.registration_number }}<br>
+              {{ order.vehicle.vehicle_model.make.name }} - {{ order.vehicle.vehicle_model.model_name }}
             </td>
+            <td>
+              <ul>
+                {% for service in order.services.all %}
+                <li>{{ service.service_type.name }} - ₹{{ service.price }}</li>
+                {% endfor %}
+              </ul>
+            </td>
+            <td>{{ order.user.userdetails.name }} ({{ order.user.email }})</td>
+            <td>{{ order.order_date }}</td>
           </tr>
           {% empty %}
           <tr>
-              <td colspan="3" class="text-center">No slots have been assigned to you.</td>
+            <td colspan="7" class="text-center text-muted">No orders for your assigned slots.</td>
           </tr>
           {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Assigned Slots Table -->
+  <!-- Assigned Slots Table -->
+<div class="container mt-5">
+  <h2 class="mb-4 text-primary">Assigned Slots</h2>
+  <div class="table-responsive">
+    <table id="slotsTable" class="table table-striped table-hover table-bordered shadow-sm">
+      <thead class="thead-dark">
+        <tr>
+          <th>Slot Name</th>
+          <th>Assigned Mechanic</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for allocation in assigned_slots %}
+        <tr>
+          <td>{{ allocation.slot.slotname }}</td>
+          <td>
+            {% if allocation.slot.mechanic %}
+            {{ allocation.slot.mechanic.email }}
+            {% else %}
+            <span class="text-danger">No mechanic assigned</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if allocation.slot.mechanic %}
+            <!-- <button class="btn btn-danger remove-button" data-slot-id="{{ allocation.slot.id }}">Remove Mechanic</button> -->
+            <!-- Example button in the slot list to remove mechanic -->
+            <button class="btn btn-danger remove-button" data-slot-id="{{ allocation.slot.id }}">Remove Mechanic</button>
+
+
+            {% else %}
+            <button class="btn btn-primary allocate-button" data-slot-slug="{{ allocation.slot.slug }}" data-toggle="modal" data-target="#allocateMechanicModal{{ allocation.slot.slug }}">
+              Allocate Mechanic
+            </button>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="text-center text-muted">No slots have been assigned to you.</td>
+        </tr>
+        {% endfor %}
       </tbody>
-  </table>
+    </table>
+  </div>
 </div>
+
+
+<!-- Modal for Allocating Mechanic -->
+{% for allocation in assigned_slots %}
+<div class="modal fade" id="allocateMechanicModal{{ allocation.slot.slug }}" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Allocate Mechanic for {{ allocation.slot.slotname }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="post" class="allocate-form" action="{% url 'allocate_mechanic' allocation.slot.slug %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="mechanic">Select Senior Mechanic</label>
+            <select name="mechanic" class="form-control">
+              {% for mechanic in mechanics %}
+              <option value="{{ mechanic.id }}">{{ mechanic.mechanic.email }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-success">Allocate</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
 
 <!-- Include jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 
 <script>
+// $(document).ready(function() {
+//   $('#ordersTable, #slotsTable').DataTable({
+//     "searching": true,
+//     "paging": true,
+//     "ordering": true
+//   });
+
+//   // Handle mechanic allocation
+//   $(".allocate-form").on("submit", function(event) {
+//     event.preventDefault(); // Prevent the form from submitting the traditional way
+//     const form = $(this);
+    
+//     $.ajax({
+//       type: "POST",
+//       url: form.attr("action"),
+//       data: form.serialize(), // Serialize the form data
+//       success: function(response) {
+//         alert(response.message);
+//         // Update the assigned mechanic's email and show the remove button
+//         const slotId = response.slot_id;
+//         const mechanicEmail = response.mechanic_email;
+
+//         const row = form.closest('tr');
+//         row.find('td:nth-child(2)').html(mechanicEmail); // Update the assigned mechanic email
+//         row.find('td:nth-child(3)').html(`
+//           <button class="btn btn-danger remove-button" data-slot-id="${slotId}">Remove Mechanic</button>
+//         `); // Show remove button
+//         $('#allocateMechanicModal' + slotId).modal('hide'); // Hide modal after allocation
+//       },
+//       error: function(response) {
+//         alert(response.responseJSON.error);
+//       }
+//     });
+//   });
+
+//   $(".remove-button").on("click", function() {
+//     const slotId = $(this).data("slot-id");
+//     if (confirm("Are you sure you want to remove the mechanic from this slot?")) {
+//       $.ajax({
+//         type: "POST",
+//         url: "{% url 'remove_mechanic' %}", // Update this URL to your remove mechanic view
+//         data: {
+//           slot_id: slotId,
+//           csrfmiddlewaretoken: '{{ csrf_token }}'
+//         },
+//         success: function(response) {
+//           alert("Mechanic removed successfully!");
+//           // Clear the mechanic email and show allocate button
+//           const row = $(this).closest('tr');
+//           row.find('td:nth-child(2)').html('<span class="text-danger">No mechanic assigned</span>'); // Reset mechanic email
+//           row.find('td:nth-child(3)').html(`
+//             <button class="btn btn-primary allocate-button" data-slot-slug="${slotId}" data-toggle="modal" data-target="#allocateMechanicModal${slotId}">
+//               Allocate Mechanic
+//             </button>
+//           `); // Show allocate button
+//         },
+//         error: function() {
+//           alert("There was an error removing the mechanic.");
+//         }
+//       });
+//     }
+//   });
+// });
+
 $(document).ready(function() {
   $(".remove-button").on("click", function() {
-      const slotId = $(this).data("slot-id");
-      if (confirm("Are you sure you want to remove the mechanic from this slot?")) {
-          $.ajax({
-              type: "POST",
-              url: "{% url 'remove_mechanic' %}", // Update this URL to your remove mechanic view
-              data: {
-                  slot_id: slotId,
-                  csrfmiddlewaretoken: '{{ csrf_token }}' // Include CSRF token
-              },
-              success: function(response) {
-                  alert("Mechanic removed successfully!");
-                  location.reload();  // Refresh the page to reflect changes
-              },
-              error: function() {
-                  alert("There was an error removing the mechanic.");
-              }
-          });
-      }
+    const slotId = $(this).data("slot-id"); // Correctly fetch the slot ID
+    if (confirm("Are you sure you want to remove the mechanic from this slot?")) {
+      $.ajax({
+        type: "POST",
+        url: "{% url 'remove_mechanic' %}",
+        data: {
+          slot_id: slotId,  // Sending the slot ID in the request
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+          alert("Mechanic removed successfully!");
+          location.reload();  // Reload the page to refresh the slot list
+        },
+        error: function() {
+          alert("There was an error removing the mechanic.");
+        }
+      });
+    }
   });
 });
+
+
+
 </script>
 
-
-<!-- Modal for allocation -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script>
-$(document).ready(function() {
-    $(".allocate-form").on("submit", function(e) {
-        e.preventDefault();
-        const form = $(this);
-        const url = form.attr("action");
-        $.ajax({
-            type: "POST",
-            url: url,
-            data: form.serialize(),
-            success: function(response) {
-                alert("Mechanic allocated successfully!");
-                location.reload();  // Optional: Reload the page to reflect changes
-            },
-            error: function() {
-                alert("There was an error allocating the mechanic.");
-            }
-        });
-    });
-});
-</script>
-
-{% for allocation in assigned_slots %}
-<div class="modal fade" id="allocateMechanicModal{{ allocation.slot.slug }}" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Allocate Mechanic for {{ allocation.slot.slotname }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="post" class="allocate-form" action="{% url 'allocate_mechanic' allocation.slot.slug %}">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="mechanic">Select Senior Mechanic</label>
-                        <select name="mechanic" class="form-control">
-                            {% for mechanic in mechanics %}
-                                <option value="{{ mechanic.id }}">{{ mechanic.mechanic.email }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-success">Allocate</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endfor %}
-
-
-      
-
-  
-    
-  
-      <!-- Include jQuery and Bootstrap JS -->
-      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-      <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-      <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
-  
-      <script>
-          $(document).ready(function() {
-              $('#slotsTable').DataTable({
-                  "searching": true,
-                  "paging": true,
-                  "ordering": true
-              });
-          });
-      </script>
-
-  
 {% endblock %}
+

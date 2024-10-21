@@ -476,33 +476,108 @@ def order_confirmation(request):
 from django.http import JsonResponse
 import uuid  # For generating unique order ID
 
+# def create_order(request):
+#     if request.method == 'POST':
+#         user = request.user
+#         # No need for `order_id` from frontend, it will be generated here
+#         cart_items = ServiceCart.objects.filter(user=user)
+
+#         if cart_items.exists():
+#             vehicle = cart_items.first().vehicle  # Assuming all cart items are for the same vehicle
+            
+#             # Generate unique order ID
+#             order_id = str(uuid.uuid4()).replace('-', '').upper()[:12]
+
+#             # Create the order
+#             order = Order.objects.create(user=user, vehicle=vehicle, order_id=order_id)
+
+#             # Add the services to the order
+#             for item in cart_items:
+#                 OrderService.objects.create(order=order, service_type=item.service_type, price=item.service_type.service_prices.first().price)
+
+#             # Clear the cart after creating the order
+#             cart_items.delete()
+
+#             return JsonResponse({'success': True, 'order_id': order_id})  # Send back the order ID
+#         else:
+#             return JsonResponse({'success': False, 'message': 'Cart is empty'})
+    
+#     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+# from django.http import JsonResponse
+# import uuid, json
+# from django.utils.dateparse import parse_date
+
+# def create_order(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         service_date = parse_date(data.get('service_date'))  # Get the selected service date
+
+#         user = request.user
+#         cart_items = ServiceCart.objects.filter(user=user)
+
+#         if cart_items.exists():
+#             vehicle = cart_items.first().vehicle
+#             order_id = str(uuid.uuid4()).replace('-', '').upper()[:12]
+
+#             # Create the order with the selected service date
+#             order = Order.objects.create(user=user, vehicle=vehicle, order_id=order_id, service_date=service_date)
+
+#             # Add services to the order
+#             for item in cart_items:
+#                 OrderService.objects.create(order=order, service_type=item.service_type, price=item.service_type.service_prices.first().price)
+
+#             # Clear the cart after creating the order
+#             cart_items.delete()
+
+#             return JsonResponse({'success': True, 'order_id': order_id})
+#         else:
+#             return JsonResponse({'success': False, 'message': 'Cart is empty'})
+    
+#     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+from django.http import JsonResponse
+import uuid, json
+from django.utils.dateparse import parse_date
+
 def create_order(request):
     if request.method == 'POST':
+        data = json.loads(request.body)
+        service_date = parse_date(data.get('service_date'))  # Get the selected service date
+
         user = request.user
-        # No need for `order_id` from frontend, it will be generated here
         cart_items = ServiceCart.objects.filter(user=user)
 
         if cart_items.exists():
-            vehicle = cart_items.first().vehicle  # Assuming all cart items are for the same vehicle
-            
-            # Generate unique order ID
+            vehicle = cart_items.first().vehicle
             order_id = str(uuid.uuid4()).replace('-', '').upper()[:12]
 
-            # Create the order
-            order = Order.objects.create(user=user, vehicle=vehicle, order_id=order_id)
+            try:
+                # Create the order with the selected service date
+                order = Order.objects.create(user=user, vehicle=vehicle, order_id=order_id, service_date=service_date)
 
-            # Add the services to the order
-            for item in cart_items:
-                OrderService.objects.create(order=order, service_type=item.service_type, price=item.service_type.service_prices.first().price)
+                # Add services to the order
+                for item in cart_items:
+                    OrderService.objects.create(order=order, service_type=item.service_type, price=item.service_type.service_prices.first().price)
 
-            # Clear the cart after creating the order
-            cart_items.delete()
+                # Clear the cart after creating the order
+                cart_items.delete()
 
-            return JsonResponse({'success': True, 'order_id': order_id})  # Send back the order ID
+                return JsonResponse({'success': True, 'order_id': order_id})
+
+            except ValueError as e:
+                # Handle the case where no free slots are available
+                return JsonResponse({'success': False, 'message': str(e)})
+
         else:
             return JsonResponse({'success': False, 'message': 'Cart is empty'})
     
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+
+
 
 
 
@@ -707,6 +782,50 @@ def edit_profile(request):
 #             'user': request.user
 #         }
 #     )
+
+
+
+# @login_required
+# def manager_dashboard(request):
+#     # Get the logged-in service manager
+#     manager = request.user
+
+#     # Retrieve the slots assigned to the service manager
+#     assigned_slots = AllocatedManager.objects.filter(manager=manager)
+
+#     # Filter only senior mechanics who are not "working"
+#     mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
+
+#     if request.method == 'POST':
+#         form = AssignMechanicForm(request.POST)
+#         if form.is_valid():
+#             slot_id = form.cleaned_data['slot_id']
+#             mechanic = form.cleaned_data['mechanic']
+
+#             # Assign the mechanic to the selected slot
+#             slot = Slot.objects.get(id=slot_id)
+#             slot.mechanic = mechanic.user
+#             slot.save()
+
+#             # Update mechanic's status to working
+#             mechanic.status = MechanicStatus.WORKING
+#             mechanic.save()
+
+#             return redirect('manager_dashboard')  # Refresh the dashboard after assigning the mechanic
+#     else:
+#         form = AssignMechanicForm()
+
+#     return render(
+#         request, 
+#         'serviceManager/dashboard.html', 
+#         {
+#             'assigned_slots': assigned_slots,
+#             'mechanics': mechanics,  # Senior mechanics who are available
+#             'form': form,
+#             'user': request.user
+#         }
+#     )
+
 @login_required
 def manager_dashboard(request):
     # Get the logged-in service manager
@@ -715,51 +834,49 @@ def manager_dashboard(request):
     # Retrieve the slots assigned to the service manager
     assigned_slots = AllocatedManager.objects.filter(manager=manager)
 
+    # Get a list of slot IDs assigned to the manager
+    assigned_slot_ids = assigned_slots.values_list('slot_id', flat=True)
+
+    # Retrieve orders that are allocated to these slots
+    orders = Order.objects.filter(allocated_slot__in=assigned_slot_ids)
+
     # Filter only senior mechanics who are not "working"
     mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
 
-    if request.method == 'POST':
-        form = AssignMechanicForm(request.POST)
-        if form.is_valid():
-            slot_id = form.cleaned_data['slot_id']
-            mechanic = form.cleaned_data['mechanic']
-
-            # Assign the mechanic to the selected slot
-            slot = Slot.objects.get(id=slot_id)
-            slot.mechanic = mechanic.user
-            slot.save()
-
-            # Update mechanic's status to working
-            mechanic.status = MechanicStatus.WORKING
-            mechanic.save()
-
-            return redirect('manager_dashboard')  # Refresh the dashboard after assigning the mechanic
-    else:
-        form = AssignMechanicForm()
+    # Fetch all slots allocated to the logged-in service manager
+    slots_with_allocated_mechanics = Slot.objects.filter(id__in=assigned_slot_ids).prefetch_related('allocatedmechanic_set')
 
     return render(
         request, 
         'serviceManager/dashboard.html', 
         {
             'assigned_slots': assigned_slots,
+            'slots_with_allocated_mechanics': slots_with_allocated_mechanics,  # Slots with their allocated mechanics
             'mechanics': mechanics,  # Senior mechanics who are available
-            'form': form,
+            'orders': orders,  # Orders related to the slots
             'user': request.user
         }
     )
 
-
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from .models import Slot, AllocatedMechanic, Mechanic, MechanicStatus, MechanicLevel
+from django.contrib.auth.decorators import login_required
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from autocareweb.models import Slot, Mechanic, AllocatedMechanic, MechanicStatus
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
-
-
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 def allocate_mechanic(request, slot_slug):
     slot = get_object_or_404(Slot, slug=slot_slug)
 
-    # Filter only senior mechanics who are not "working"
+    # Filter available senior mechanics
     available_mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
 
     if request.method == "POST":
@@ -768,55 +885,87 @@ def allocate_mechanic(request, slot_slug):
         if form.is_valid():
             mechanic = form.cleaned_data['mechanic']
 
-            # Assign the mechanic to the slot
-            slot.mechanic = mechanic.mechanic  # Assign the CustomUser instance from the Mechanic object
-            slot.save()
+            try:
+                with transaction.atomic():
+                    # Assign the mechanic to the slot
+                    slot.mechanic = mechanic.mechanic  # Assign the CustomUser instance from the Mechanic object
+                    slot.save()
 
-            # Update mechanic status to working
-            mechanic.status = MechanicStatus.WORKING
-            mechanic.save()
+                    # Update mechanic status to working
+                    mechanic.status = MechanicStatus.WORKING
+                    mechanic.save()
 
-            # Add record to AllocatedMechanic table
-            AllocatedMechanic.objects.create(mechanic=mechanic.mechanic, manager=request.user, slot=slot)
+                    # Add record to AllocatedMechanic table
+                    AllocatedMechanic.objects.create(mechanic=mechanic.mechanic, manager=request.user, slot=slot)
 
-            return JsonResponse({'message': 'Mechanic allocated successfully!'})
-
+                return redirect('manager_dashboard')
+            except Exception as e:
+                # Handle any database errors
+                print("Error in allocation: ", e)
+                return redirect('manager_dashboard')
         else:
-            # Log errors to debug form issues
             print("Form errors: ", form.errors)
 
     return JsonResponse({'error': 'Invalid form submission'}, status=400)
 
 
+
+
+
+
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .models import Slot, AllocatedMechanic, Mechanic, MechanicStatus
 
 @require_POST
 @login_required
 def remove_mechanic(request):
     slot_id = request.POST.get('slot_id')
+    
+    # Ensure slot_id is provided
+    if not slot_id:
+        return JsonResponse({'error': 'No slot ID provided'}, status=400)
+    
+    # Fetch the slot
     slot = get_object_or_404(Slot, id=slot_id)
+    
+    # Check if the slot already has no mechanic assigned
+    if not slot.mechanic:
+        return JsonResponse({'error': 'No mechanic is currently assigned to this slot'}, status=400)
+    
+    try:
+        # Fetch the allocated mechanic associated with this slot
+        allocated_mechanic = AllocatedMechanic.objects.get(slot=slot)
+    except AllocatedMechanic.DoesNotExist:
+        return JsonResponse({'error': 'No mechanic allocation found for this slot'}, status=400)
 
-    # Get the allocated mechanic
-    allocated_mechanic = AllocatedMechanic.objects.filter(slot=slot).first()
+    try:
+        # Atomic transaction to ensure consistent data
+        with transaction.atomic():
+            # Remove mechanic from slot
+            slot.mechanic = None
+            slot.save()
 
-    if allocated_mechanic:
-        # Remove mechanic from slot
-        slot.mechanic = None
-        slot.save()
+            # Set the mechanic status back to ACTIVE
+            mechanic = Mechanic.objects.get(mechanic=allocated_mechanic.mechanic)
+            mechanic.status = MechanicStatus.ACTIVE
+            mechanic.save()
 
-        # Update mechanic's status to free
-        mechanic = allocated_mechanic.mechanic
-        mechanic_instance = Mechanic.objects.get(mechanic=mechanic)
-        mechanic_instance.status = MechanicStatus.ACTIVE  # Set to active/free status
-        mechanic_instance.save()
+            # Delete the allocation record from AllocatedMechanic
+            allocated_mechanic.delete()
 
-        # Remove the allocation record
-        allocated_mechanic.delete()
+        return JsonResponse({'message': 'Mechanic removed successfully!'})
 
-    return JsonResponse({'message': 'Mechanic removed successfully!'})
+    except Mechanic.DoesNotExist:
+        return JsonResponse({'error': 'Mechanic not found'}, status=400)
 
-
-
+    except Exception as e:
+        # Handle general exceptions and log them
+        print("Error removing mechanic: ", e)
+        return JsonResponse({'error': 'An error occurred while removing the mechanic'}, status=500)
 
 
 

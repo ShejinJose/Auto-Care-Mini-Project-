@@ -139,33 +139,39 @@ class ServiceCart(models.Model):
 from django.db import models
 from django.utils import timezone
 
-class Order(models.Model):
-    ORDER_STATUS = [
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
-        ('confirmed', 'Confirmed'),
-    ]
+# class Order(models.Model):
+#     ORDER_STATUS = [
+#         ('pending', 'Pending'),
+#         ('completed', 'Completed'),
+#         ('confirmed', 'Confirmed'),
+#     ]
     
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # User who placed the order
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)  # Vehicle selected for the order
-    order_id = models.CharField(max_length=20, unique=True)  # Unique order identifier
-    order_date = models.DateTimeField(default=timezone.now)  # Date when the order was placed
-    status = models.CharField(max_length=10, choices=ORDER_STATUS, default='pending')  # Order status
+#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # User who placed the order
+#     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)  # Vehicle selected for the order
+#     order_id = models.CharField(max_length=20, unique=True)  # Unique order identifier
+#     order_date = models.DateTimeField(default=timezone.now)  # Date when the order was placed
+#     status = models.CharField(max_length=10, choices=ORDER_STATUS, default='pending')  # Order status
     
-    def __str__(self):
-        return f"Order {self.order_id} by {self.user.email} for {self.vehicle.registration_number}"
-
-class OrderService(models.Model):
-    order = models.ForeignKey(Order, related_name='services', on_delete=models.CASCADE)  # The order this service belongs to
-    service_type = models.ForeignKey(ServiceType, on_delete=models.CASCADE)  # The service being ordered
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # The price of the service
-
-    def __str__(self):
-        return f"{self.service_type.name} for order {self.order.order_id}"
+#     def __str__(self):
+#         return f"Order {self.order_id} by {self.user.email} for {self.vehicle.registration_number}"
 
 
+# class Order(models.Model):
+#     ORDER_STATUS = [
+#         ('pending', 'Work in Progress'),
+#         ('completed', 'Completed'),
+#         ('confirmed', 'Order Confirmed'),
+#     ]
+    
+#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+#     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+#     order_id = models.CharField(max_length=20, unique=True)
+#     order_date = models.DateTimeField(default=timezone.now)
+#     service_date = models.DateField(null=True, blank=True) # New field for the selected service date
+#     status = models.CharField(max_length=10, choices=ORDER_STATUS, default='confirmed')
 
-
+#     def __str__(self):
+#         return f"Order {self.order_id} by {self.user.email} for {self.vehicle.registration_number}"
 
 #//////////////////////////  slot list ////////////////////////
 
@@ -176,7 +182,7 @@ class SlotStatus(models.TextChoices):
 
 class Slot(models.Model):
     slotname = models.CharField(max_length=100)
-    mechanic = models.ForeignKey(CustomUser, limit_choices_to={'role': 'mechanic'}, on_delete=models.SET_NULL, null=True, blank=True)
+    mechanic = models.ForeignKey(CustomUser, limit_choices_to={'role': 'mechanic'}, on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=10, choices=SlotStatus.choices, default=SlotStatus.FREE)
     slug = models.SlugField(unique=True, blank=True)
 
@@ -195,6 +201,57 @@ class AllocatedManager(models.Model):
         Slot,
         on_delete=models.CASCADE
     )
+
+
+
+class Order(models.Model):
+    ORDER_STATUS = [
+        ('pending', 'Work in Progress'),
+        ('completed', 'Completed'),
+        ('confirmed', 'Order Confirmed'),
+    ]
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    order_id = models.CharField(max_length=20, unique=True)
+    order_date = models.DateTimeField(default=timezone.now)
+    service_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=ORDER_STATUS, default='confirmed')
+    allocated_slot = models.ForeignKey(Slot, null=True, blank=True, on_delete=models.SET_NULL)  # ForeignKey to Slot model
+
+    def __str__(self):
+        return f"Order {self.order_id} by {self.user.email} for {self.vehicle.registration_number}"
+
+    def allocate_slot(self):
+        # Get the first available free slot
+        free_slot = Slot.objects.filter(status=SlotStatus.FREE).first()
+        if free_slot:
+            free_slot.status = SlotStatus.ALLOCATED
+            free_slot.save()  # Update slot status to allocated
+            self.allocated_slot = free_slot  # Assign slot to the order
+        else:
+            raise ValueError("No free slots available")
+
+    def save(self, *args, **kwargs):
+        if not self.allocated_slot:
+            self.allocate_slot()  # Automatically allocate a slot when saving
+        super().save(*args, **kwargs)
+
+
+class OrderService(models.Model):
+    order = models.ForeignKey(Order, related_name='services', on_delete=models.CASCADE)  # The order this service belongs to
+    service_type = models.ForeignKey(ServiceType, on_delete=models.CASCADE)  # The service being ordered
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # The price of the service
+
+    def __str__(self):
+        return f"{self.service_type.name} for order {self.order.order_id}"
+
+
+
+
+
+#//////////////////////////  slot list ////////////////////////
+
 
 
 class AllocatedMechanic(models.Model):

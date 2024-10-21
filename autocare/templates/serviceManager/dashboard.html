@@ -208,69 +208,7 @@
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 
 <script>
-// $(document).ready(function() {
-//   $('#ordersTable, #slotsTable').DataTable({
-//     "searching": true,
-//     "paging": true,
-//     "ordering": true
-//   });
 
-//   // Handle mechanic allocation
-//   $(".allocate-form").on("submit", function(event) {
-//     event.preventDefault(); // Prevent the form from submitting the traditional way
-//     const form = $(this);
-    
-//     $.ajax({
-//       type: "POST",
-//       url: form.attr("action"),
-//       data: form.serialize(), // Serialize the form data
-//       success: function(response) {
-//         alert(response.message);
-//         // Update the assigned mechanic's email and show the remove button
-//         const slotId = response.slot_id;
-//         const mechanicEmail = response.mechanic_email;
-
-//         const row = form.closest('tr');
-//         row.find('td:nth-child(2)').html(mechanicEmail); // Update the assigned mechanic email
-//         row.find('td:nth-child(3)').html(`
-//           <button class="btn btn-danger remove-button" data-slot-id="${slotId}">Remove Mechanic</button>
-//         `); // Show remove button
-//         $('#allocateMechanicModal' + slotId).modal('hide'); // Hide modal after allocation
-//       },
-//       error: function(response) {
-//         alert(response.responseJSON.error);
-//       }
-//     });
-//   });
-
-//   $(".remove-button").on("click", function() {
-//     const slotId = $(this).data("slot-id");
-//     if (confirm("Are you sure you want to remove the mechanic from this slot?")) {
-//       $.ajax({
-//         type: "POST",
-//         url: "{% url 'remove_mechanic' %}", // Update this URL to your remove mechanic view
-//         data: {
-//           slot_id: slotId,
-//           csrfmiddlewaretoken: '{{ csrf_token }}'
-//         },
-//         success: function(response) {
-//           alert("Mechanic removed successfully!");
-//           // Clear the mechanic email and show allocate button
-//           const row = $(this).closest('tr');
-//           row.find('td:nth-child(2)').html('<span class="text-danger">No mechanic assigned</span>'); // Reset mechanic email
-//           row.find('td:nth-child(3)').html(`
-//             <button class="btn btn-primary allocate-button" data-slot-slug="${slotId}" data-toggle="modal" data-target="#allocateMechanicModal${slotId}">
-//               Allocate Mechanic
-//             </button>
-//           `); // Show allocate button
-//         },
-//         error: function() {
-//           alert("There was an error removing the mechanic.");
-//         }
-//       });
-//     }
-//   });
-// });
 
 $(document).ready(function() {
   $(".remove-button").on("click", function() {

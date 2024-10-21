@@ -280,6 +280,36 @@ class AllocatedMechanic(models.Model):
         return f"Mechanic {self.mechanic.email} assigned to Slot {self.slot.slotname}"
 
 
+class AllocateJuniorMechanics(models.Model):
+    junior_mechanic = models.ForeignKey(
+        CustomUser,
+        limit_choices_to={'role': UserRole.MECHANIC},
+        on_delete=models.CASCADE,
+        related_name='allocated_junior_mechanics'  # This is correct
+    )
+    senior_mechanic = models.ForeignKey(
+        CustomUser,
+        limit_choices_to={'role': UserRole.MECHANIC},
+        on_delete=models.CASCADE,
+        related_name='allocating_senior_mechanics'  # This is correct
+    )
+    service_manager = models.ForeignKey(
+        CustomUser,
+        limit_choices_to={'role': UserRole.SERVICE_MANAGER},
+        on_delete=models.CASCADE,
+        related_name='junior_mechanic_allocations'  # This is correct
+    )
+    slot = models.ForeignKey(
+        Slot,
+        on_delete=models.CASCADE
+    )
+    allocated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Junior Mechanic {self.junior_mechanic.email} allocated by Senior Mechanic {self.senior_mechanic.email} for Slot {self.slot.slotname}"
+
+
+
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -302,5 +332,7 @@ class Mechanic(models.Model):
 
     def __str__(self):
         return f"{self.mechanic.email} - {self.get_level_display()}"
+    
+    
 
 

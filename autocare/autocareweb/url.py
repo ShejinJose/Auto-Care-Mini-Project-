@@ -17,7 +17,7 @@ urlpatterns = [
     path('price',views.price),
     path('service',views.service,name="service"),
     path('booking',views.booking,name="booking"),
-    path('mechanic',views.mechanic,name="mechanic"),
+    
 
     #///////////////  Vehicle Select /////////////
     path('select-vehicle/', views.select_vehicle, name='select_vehicle'),
@@ -116,7 +116,10 @@ urlpatterns = [
     path('remove-mechanic/', views.remove_mechanic, name='remove_mechanic'),
 
 
-
+    #///////////////////   Mechanics ////////////////////////////////////////
+    path('mechanic',views.mechanic_dashboard,name="mechanic"),
+    path('add-junior-mechanic/<int:slot_id>/', views.add_junior_mechanic, name='add_junior_mechanic'),
+    path('remove-junior-mechanic/<int:slot_id>/<int:junior_mechanic_id>/', views.remove_junior_mechanic, name='remove_junior_mechanic'),
 
 
     #////////////////////// Service Categories/////////////////////////////////

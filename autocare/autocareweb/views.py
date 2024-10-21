@@ -969,63 +969,112 @@ def remove_mechanic(request):
 
 
 
-# def allocate_mechanic(request, slot_slug):
-#     slot = get_object_or_404(Slot, slug=slot_slug)
-
-#     # Filter only senior mechanics who are not "working"
-#     available_mechanics = Mechanic.objects.filter(level=MechanicLevel.SENIOR, status=MechanicStatus.ACTIVE)
-
-#     if request.method == "POST":
-#         form = MechanicAllocationForm(request.POST)
-#         if form.is_valid():
-#             mechanic = form.cleaned_data['mechanic']
-
-#             # Assign the mechanic to the slot
-#             slot.mechanic = mechanic.user
-#             slot.save()
-
-#             # Update mechanic status to working
-#             mechanic.status = MechanicStatus.WORKING
-#             mechanic.save()
-
-#             # Add record to AllocatedMechanic table
-#             AllocatedMechanic.objects.create(mechanic=mechanic.user, manager=request.user, slot=slot)
-
-#             return redirect('manager_dashboard')
-#     else:
-#         form = MechanicAllocationForm()
-
-#     return render(request, 'allocate_mechanic.html', {'slot': slot, 'mechanics': available_mechanics, 'form': form})
-
-
-# def allocate_mechanic(request):
-#     if request.method == "POST":
-#         form = MechanicAllocationForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('manager_dashboard')
-#     else:
-#         form = MechanicAllocationForm()
-#     return render(request, 'manager_dashboard', {'form': form})
-
-# def reallocate_mechanic(request, allocation_id):
-#     allocation = get_object_or_404(AllocatedMechanic, id=allocation_id)
-#     if request.method == "POST":
-#         form = MechanicAllocationForm(request.POST, instance=allocation)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('manager_dashboard')
-#     else:
-#         form = MechanicAllocationForm(instance=allocation)
-#     return render(request, 'serviceManager/reallocate_mechanic.html', {'form': form})
-
-
-
-
 
 #/////////////////Mechanic Dashboard/////////////////////////
-def mechanic(request):
-    return render(request,'mechanics/mechanic_dashboard.html')
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Slot, Mechanic, AllocateJuniorMechanics, MechanicStatus, MechanicLevel
+from django.http import JsonResponse
+
+# @login_required
+# def mechanic_dashboard(request):
+#     mechanic = get_object_or_404(Mechanic, mechanic=request.user)
+
+#     if mechanic.level == MechanicLevel.SENIOR:
+#         # Get slots assigned to the senior mechanic
+#         senior_slots = Slot.objects.filter(allocatedmechanic__mechanic=request.user)
+#         available_junior_mechanics = Mechanic.objects.filter(
+#             level__in=[MechanicLevel.MEDIUM, MechanicLevel.ENTRY], 
+#             status=MechanicStatus.ACTIVE
+#         ).exclude(
+#             allocatedjuniormechanics__slot__in=senior_slots
+#         )
+
+#         return render(request, 'mechanics/mechanic_dashboard.html', {
+#             'mechanic': mechanic,
+#             'senior_slots': senior_slots,
+#             'available_junior_mechanics': available_junior_mechanics
+#         })
+
+#     else:
+#         # Get slots assigned to the junior or entry-level mechanic
+#         junior_slots = AllocateJuniorMechanics.objects.filter(junior_mechanic=request.user)
+
+#         return render(request, 'mechanic_dashboard.html', {
+#             'mechanic': mechanic,
+#             'junior_slots': junior_slots
+@login_required
+def mechanic_dashboard(request):
+    user = request.user
+
+    # Fetch senior mechanics
+    if user.mechanic.level == MechanicLevel.SENIOR:
+        # Fetch slots allocated to the senior mechanic using the CustomUser instance
+        # assigned_slots = AllocatedMechanic.objects.filter(mechanic=user)
+        assigned_slots = Slot.objects.filter(mechanic=request.user)
+        # Fetch medium and entry mechanics that have not been allocated to any slot by this senior mechanic
+        available_junior_mechanics = Mechanic.objects.filter(
+            level__in=[MechanicLevel.MEDIUM, MechanicLevel.ENTRY],
+            status=MechanicStatus.ACTIVE
+        )
+
+        context = {
+            'assigned_slots': assigned_slots,
+            'available_junior_mechanics': available_junior_mechanics,
+        }
+
+    else:
+        # For medium/entry mechanics, show the slots they've been allocated to
+        assigned_slots = AllocateJuniorMechanics.objects.filter(junior_mechanic=user)
+
+        context = {
+            'assigned_slots': assigned_slots,
+        }
+
+    return render(request, 'mechanics/mechanic_dashboard.html', context)
+
+
+
+@login_required
+def add_junior_mechanic(request, slot_id):
+    slot = get_object_or_404(Slot, id=slot_id)
+    senior_mechanic = get_object_or_404(Mechanic, mechanic=request.user, level=MechanicLevel.SENIOR)
+
+    if request.method == 'POST':
+        junior_mechanic_id = request.POST.get('junior_mechanic')
+        junior_mechanic = get_object_or_404(Mechanic, id=junior_mechanic_id, status=MechanicStatus.ACTIVE)
+
+        # Allocate junior mechanic
+        AllocateJuniorMechanics.objects.create(
+            junior_mechanic=junior_mechanic.mechanic,
+            senior_mechanic=request.user,
+            slot=slot
+        )
+
+        # Mark the junior mechanic as working
+        junior_mechanic.status = MechanicStatus.WORKING
+        junior_mechanic.save()
+
+        return redirect('mechanic_dashboard')
+
+@login_required
+def remove_junior_mechanic(request, slot_id, junior_mechanic_id):
+    slot = get_object_or_404(Slot, id=slot_id)
+    junior_mechanic = get_object_or_404(Mechanic, mechanic__id=junior_mechanic_id)
+
+    # Remove the junior mechanic from the slot
+    allocation = get_object_or_404(AllocateJuniorMechanics, slot=slot, junior_mechanic=junior_mechanic.mechanic)
+    allocation.delete()
+
+    # Update mechanic status back to active
+    junior_mechanic.status = MechanicStatus.ACTIVE
+    junior_mechanic.save()
+
+    return redirect('mechanic_dashboard')
+
+
+
+
 
 
 

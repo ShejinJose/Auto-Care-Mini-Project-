@@ -122,10 +122,12 @@ class ServicePrice(models.Model):
     
 
 #///////////////// Service cart ///////////////////////////
+from django.utils import timezone
 class ServiceCart(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # User who owns the cart
     service_type = models.ForeignKey(ServiceType, on_delete=models.CASCADE)  # Service type added to the cart
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)  # Selected vehicle
+    cart_date = models.DateTimeField(default=timezone.now) 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

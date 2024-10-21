@@ -451,6 +451,8 @@ def order_confirmation(request):
     if cart_items.exists():
         vehicle = cart_items.first().vehicle  # Assuming all cart items are for the same vehicle
 
+        # Get the user details
+        user_details = UserDetails.objects.get(user=user)
         # Calculate total price and total service time
         total_price = sum(item.service_type.service_prices.first().price for item in cart_items)
         total_time = sum(item.service_type.service_time for item in cart_items)
@@ -463,6 +465,7 @@ def order_confirmation(request):
             'vehicle': vehicle,
             'total_price': total_price,
             'total_time': total_time,
+            'user_details': user_details,
         })
     else:
         return redirect('view_cart')  # If no cart items, redirect back to the cart

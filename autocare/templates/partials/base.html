@@ -99,7 +99,9 @@
                             <a href="{%url 'about'%}" class="nav-item nav-link">About</a>
                             <a href="{%url 'customer_service_category'%}" class="nav-item nav-link">Service</a>
                             <a href="{%url 'contact'%}" class="nav-item nav-link">Contact</a>
-                            <a href="{%url 'location'%}" class="nav-item nav-link">Job Portal</a>
+                            <a href="{%url 'job_list'%}" class="nav-item nav-link">Job Portal</a>
+                            <a href="{%url 'submit_complaint'%}" class="nav-item nav-link">Complaint Register</a>
+                            <a href="{%url 'my_orders'%}" class="nav-item nav-link">My Services</a>
                             
                             <div class="navbar-nav ml-auto">
                                 {% if user.is_authenticated %}
@@ -146,9 +148,9 @@
                             </a>
                             
                         </div> 
-                        <div class="ml-auto">
-                            <a class="btn btn-custom" href="#">Get Assistance</a>
-                        </div>
+                        <!-- <div class="ml-auto">
+                            <a class="btn btn-custom" href="{% url 'view_cart' %}">Get Assistance</a>
+                        </div> -->
                     </div>
                 </nav>
             </div>

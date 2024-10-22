@@ -31,7 +31,7 @@ def cust_login(request) :
                 elif user.role == 'service_manager':
                     return redirect('manager_dashboard')
                 elif user.role == 'mechanic':
-                     return redirect('mechanic')
+                     return redirect('mechanic_dashboard')
                 elif user.role == 'customer':
                      return redirect('home')
 
@@ -577,6 +577,49 @@ def create_order(request):
 
 
 
+from django.shortcuts import render
+from .models import Order, Vehicle
+from django.db.models import Sum
+
+from django.db.models import Sum
+from django.shortcuts import render
+from .models import Order, Vehicle
+
+from django.db.models import Sum
+from django.shortcuts import render
+from .models import Order, Vehicle
+
+def my_orders(request):
+    # Get the current logged-in user
+    user = request.user
+
+    # Fetch all vehicles owned by the user
+    vehicles = Vehicle.objects.filter(user=user)
+
+    # Check if a specific vehicle is selected for filtering
+    selected_vehicle_id = request.GET.get('vehicle_id')
+
+    # Initialize orders as an empty queryset just in case
+    orders = Order.objects.none()
+
+    # Filter orders by user and optionally by selected vehicle
+    if selected_vehicle_id:
+        orders = Order.objects.filter(user=user, vehicle_id=selected_vehicle_id).order_by('-order_date')
+    else:
+        orders = Order.objects.filter(user=user).order_by('-order_date')
+
+    # Annotate each order with the total price
+    for order in orders:
+        total_price = order.services.aggregate(total=Sum('price'))['total'] or 0.00
+        order.total_price = total_price
+
+    context = {
+        'orders': orders,
+        'vehicles': vehicles,
+        'selected_vehicle_id': selected_vehicle_id,  # Pass the selected vehicle ID to the template
+    }
+
+    return render(request, 'my_order.html', context)
 
 
 
@@ -599,8 +642,24 @@ def location(request) :
     return render(request,"location.html")
 
 
+@login_required
 def cst_admin(request):
-    return render(request,'admin/dashboard.html')
+    # Retrieve all orders
+    orders = Order.objects.select_related('user', 'vehicle', 'allocated_slot').prefetch_related('services').all()
+
+    return render(request, 'admin/dashboard.html', {'orders': orders})
+
+
+from django.shortcuts import render
+from .models import Order, OrderService
+
+# @login_required
+# def all_orders(request):
+#     # Retrieve all orders
+#     orders = Order.objects.select_related('user', 'vehicle', 'allocated_slot').prefetch_related('services').all()
+
+#     return render(request, 'admin/dashboard.html', {'orders': orders})
+
 
 from django.shortcuts import render, redirect
 from .form import VehicleMakeForm, VehicleModelForm
@@ -971,6 +1030,9 @@ def remove_mechanic(request):
 
 
 #/////////////////Mechanic Dashboard/////////////////////////
+
+
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Slot, Mechanic, AllocateJuniorMechanics, MechanicStatus, MechanicLevel
@@ -1003,76 +1065,183 @@ from django.http import JsonResponse
 #         return render(request, 'mechanic_dashboard.html', {
 #             'mechanic': mechanic,
 #             'junior_slots': junior_slots
+
+
+
+# @login_required
+# def mechanic_dashboard(request):
+#     user = request.user
+
+#     # Fetch senior mechanics
+#     if user.mechanic.level == MechanicLevel.SENIOR:
+#         # Fetch slots allocated to the senior mechanic using the CustomUser instance
+#         # assigned_slots = AllocatedMechanic.objects.filter(mechanic=user)
+#         assigned_slots = Slot.objects.filter(mechanic=request.user)
+#         # Fetch medium and entry mechanics that have not been allocated to any slot by this senior mechanic
+#         available_junior_mechanics = Mechanic.objects.filter(
+#             level__in=[MechanicLevel.MEDIUM, MechanicLevel.ENTRY],
+#             status=MechanicStatus.ACTIVE
+#         )
+
+#         context = {
+#             'assigned_slots': assigned_slots,
+#             'available_junior_mechanics': available_junior_mechanics,
+#         }
+
+#     else:
+#         # For medium/entry mechanics, show the slots they've been allocated to
+#         assigned_slots = AllocateJuniorMechanics.objects.filter(junior_mechanic=user)
+
+#         context = {
+#             'assigned_slots': assigned_slots,
+#         }
+
+#     return render(request, 'mechanics/mechanic_dashboard.html', context)
+
+
+
+# @login_required
+# def add_junior_mechanic(request, slot_id):
+#     slot = get_object_or_404(Slot, id=slot_id)
+#     senior_mechanic = get_object_or_404(Mechanic, mechanic=request.user, level=MechanicLevel.SENIOR)
+
+#     if request.method == 'POST':
+#         junior_mechanic_id = request.POST.get('junior_mechanic')
+#         junior_mechanic = get_object_or_404(Mechanic, id=junior_mechanic_id, status=MechanicStatus.ACTIVE)
+
+#         # Allocate junior mechanic
+#         AllocateJuniorMechanics.objects.create(
+#             junior_mechanic=junior_mechanic.mechanic,
+#             senior_mechanic=request.user,
+#             slot=slot
+#         )
+
+#         # Mark the junior mechanic as working
+#         junior_mechanic.status = MechanicStatus.WORKING
+#         junior_mechanic.save()
+
+#         return redirect('mechanic')
+
+# @login_required
+# def remove_junior_mechanic(request, slot_id, junior_mechanic_id):
+#     slot = get_object_or_404(Slot, id=slot_id)
+#     junior_mechanic = get_object_or_404(Mechanic, mechanic__id=junior_mechanic_id)
+
+#     # Remove the junior mechanic from the slot
+#     allocation = get_object_or_404(AllocateJuniorMechanics, slot=slot, junior_mechanic=junior_mechanic.mechanic)
+#     allocation.delete()
+
+#     # Update mechanic status back to active
+#     junior_mechanic.status = MechanicStatus.ACTIVE
+#     junior_mechanic.save()
+
+#     return redirect('mechanic')
+
+
+
+
 @login_required
 def mechanic_dashboard(request):
     user = request.user
 
-    # Fetch senior mechanics
     if user.mechanic.level == MechanicLevel.SENIOR:
-        # Fetch slots allocated to the senior mechanic using the CustomUser instance
-        # assigned_slots = AllocatedMechanic.objects.filter(mechanic=user)
-        assigned_slots = Slot.objects.filter(mechanic=request.user)
-        # Fetch medium and entry mechanics that have not been allocated to any slot by this senior mechanic
+        assigned_slots = Slot.objects.filter(mechanic=user)
+        orders = Order.objects.filter(allocated_slot__in=assigned_slots).prefetch_related('services', 'vehicle', 'user')
         available_junior_mechanics = Mechanic.objects.filter(
             level__in=[MechanicLevel.MEDIUM, MechanicLevel.ENTRY],
             status=MechanicStatus.ACTIVE
         )
-
         context = {
             'assigned_slots': assigned_slots,
             'available_junior_mechanics': available_junior_mechanics,
+            'orders': orders, 
         }
-
     else:
-        # For medium/entry mechanics, show the slots they've been allocated to
         assigned_slots = AllocateJuniorMechanics.objects.filter(junior_mechanic=user)
-
-        context = {
-            'assigned_slots': assigned_slots,
+        context = {'assigned_slots': assigned_slots,
+                   'orders': orders, 
         }
 
     return render(request, 'mechanics/mechanic_dashboard.html', context)
 
 
 
+
+def update_order_status(request):
+    # Fetch all orders that belong to the logged-in senior mechanic
+    assigned_orders = Order.objects.filter(allocated_slot__mechanic=request.user)
+
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        new_status = request.POST.get('status')
+
+        # Fetch the order object by ID
+        order = get_object_or_404(Order, id=order_id)
+
+        # Update the order status
+        order.status = new_status
+        order.save()
+
+        # If the status is 'completed', free up the slot
+        if new_status == 'completed':
+            slot = order.allocated_slot
+            slot.status = SlotStatus.FREE
+            slot.save()
+
+        # Send a success message
+        messages.success(request, "Order status updated successfully!")
+
+        # Return a success response
+        return JsonResponse({'success': True})
+
+    return render(request, 'mechanics/update_order.html', {'orders': assigned_orders})
+
+
+@login_required
+def allocate_juniormechanic(request):
+    # Fetch all slots and available junior mechanics for senior mechanics
+    available_junior_mechanics = Mechanic.objects.filter(
+        level__in=[MechanicLevel.MEDIUM, MechanicLevel.ENTRY],
+        status=MechanicStatus.ACTIVE
+    )
+    slots = Slot.objects.filter(mechanic=request.user)
+
+    context = {
+        'slots': slots,
+        'available_junior_mechanics': available_junior_mechanics
+    }
+    return render(request, 'mechanics/allocate_mechanic.html', context)
+
 @login_required
 def add_junior_mechanic(request, slot_id):
     slot = get_object_or_404(Slot, id=slot_id)
-    senior_mechanic = get_object_or_404(Mechanic, mechanic=request.user, level=MechanicLevel.SENIOR)
-
     if request.method == 'POST':
         junior_mechanic_id = request.POST.get('junior_mechanic')
         junior_mechanic = get_object_or_404(Mechanic, id=junior_mechanic_id, status=MechanicStatus.ACTIVE)
 
-        # Allocate junior mechanic
         AllocateJuniorMechanics.objects.create(
             junior_mechanic=junior_mechanic.mechanic,
             senior_mechanic=request.user,
             slot=slot
         )
 
-        # Mark the junior mechanic as working
         junior_mechanic.status = MechanicStatus.WORKING
         junior_mechanic.save()
 
-        return redirect('mechanic_dashboard')
+        return redirect('allocate_mechanic')
 
 @login_required
 def remove_junior_mechanic(request, slot_id, junior_mechanic_id):
     slot = get_object_or_404(Slot, id=slot_id)
     junior_mechanic = get_object_or_404(Mechanic, mechanic__id=junior_mechanic_id)
-
-    # Remove the junior mechanic from the slot
+    
     allocation = get_object_or_404(AllocateJuniorMechanics, slot=slot, junior_mechanic=junior_mechanic.mechanic)
     allocation.delete()
 
-    # Update mechanic status back to active
     junior_mechanic.status = MechanicStatus.ACTIVE
     junior_mechanic.save()
 
-    return redirect('mechanic_dashboard')
-
-
+    return redirect('allocate_mechanic')
 
 
 
@@ -1469,3 +1638,230 @@ def edit_service_price(request, service_price_id):
         form = ServicePriceForm(instance=service_price)  # Pre-fill form with existing data
     
     return render(request, 'admin/service_price/edit_service_price.html', {'form': form, 'service_price': service_price})
+
+
+@login_required
+def receive_complaint(request):
+    if request.method == 'POST':
+        complaint_text = request.POST.get('complaint')
+        if complaint_text:
+            # Save the complaint to the database
+            CustomerComplaint.objects.create(user=request.user, complaint=complaint_text)
+            message = "Your complaint has been submitted successfully."
+        else:
+            message = "Please fill out the complaint field."
+        return render(request, 'index.html', {'message': message})
+    
+    return render(request, 'submit_complaint.html')
+
+@login_required
+def complaint_list(request):
+    complaints = CustomerComplaint.objects.all()
+    return render(request, 'complaint_list.html', {'complaints': complaints})
+
+
+
+#//////////////   Job Portal /////////////////////////
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
+from .models import JobPost, JobApplication
+from .form import JobPostForm, JobApplicationForm
+
+@login_required
+def post_job(request):
+    # if request.user.role != 'service_manager':  # Only mechanics can post jobs
+    #     return redirect('job_list')
+    
+    if request.method == 'POST':
+        form = JobPostForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.posted_by = request.user  # Mechanic is posting the job
+            job.save()
+            return redirect('manager_job_list')
+    else:
+        form = JobPostForm()
+    return render(request, 'serviceManager/post_job.html', {'form': form})
+
+
+def manager_job_list(request):
+    jobs = JobPost.objects.filter(is_active=True)
+    return render(request, 'serviceManager/manager_job_list.html', {'jobs': jobs})
+def job_list(request):
+    jobs = JobPost.objects.filter(is_active=True)
+    return render(request, 'jobportal/job_list.html', {'jobs': jobs})
+
+def apply_job(request, job_id):
+    job = get_object_or_404(JobPost, id=job_id)
+    if not job.is_active:
+        return render(request, 'jobportal/job_closed.html')
+
+    if request.method == 'POST':
+        form = JobApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.job = job
+            application.save()
+            messages.success(request, 'You have successfully applied for the job.')
+            return redirect('job_list')
+    else:
+        form = JobApplicationForm()
+    return render(request, 'jobportal/apply_job.html', {'form': form, 'job': job})
+# from django.contrib import messages
+# from django.shortcuts import redirect, render, get_object_or_404
+# from .models import JobPost
+# from .form import JobApplicationForm
+
+# def apply_job(request, job_id):
+#     job = get_object_or_404(JobPost, id=job_id)
+    
+#     # Check if the job is still active
+#     if not job.is_active:
+#         return render(request, 'jobportal/job_closed.html')
+
+#     if request.method == 'POST':
+#         form = JobApplicationForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             application = form.save(commit=False)
+#             application.job = job
+#             application.save()
+
+#             # Add a success message
+#             messages.success(request, 'You have successfully applied for the job.')
+
+#             # Redirect to the job list page
+#             return redirect('job_list')
+#     else:
+#         form = JobApplicationForm()
+
+#     return render(request, 'jobportal/apply_job.html', {'form': form, 'job': job})
+
+
+
+@login_required
+def view_candidates(request, job_id):
+    job = get_object_or_404(JobPost, id=job_id)
+    
+    # Ensure only the service manager who posted the job can view the candidates
+    if request.user.role != 'service_manager' or job.posted_by != request.user:
+        return redirect('job_list')
+
+    applications = JobApplication.objects.filter(job=job)
+    return render(request, 'serviceManager/select_candidate.html', {
+        'job': job,
+        'applications': applications
+    })
+
+
+from django.contrib.auth.models import AbstractBaseUser
+
+@login_required
+def select_candidate(request, application_id):
+    application = get_object_or_404(JobApplication, id=application_id)
+
+    # Check if the logged-in user is the service manager who posted the job
+    if request.user.role != 'service_manager' or application.job.posted_by != request.user:
+        return redirect('job_list')  # Redirect if unauthorized access
+    
+    # Mark candidate as selected
+    application.is_selected = True
+    application.save()
+
+    # Deactivate the job once a candidate is selected
+    application.job.is_active = False
+    application.job.save()
+
+    
+    # Create a user account for the selected candidate
+    # User = get_user_model()
+    # random_password = AbstractBaseUser().make_random_password()  # Generate random password
+    # user = User.objects.create_user(
+    #     email=application.candidate_email,
+    #     password=random_password,
+    #     role='CANDIDATE'
+    # )
+
+    # Redirect to the job list after selecting a candidate
+    return redirect('manager_job_list')
+
+
+
+# @login_required
+# def select_candidate(request, application_id):
+#     application = get_object_or_404(JobApplication, id=application_id)
+
+#     # Check if the logged-in user is the service manager who posted the job
+#     if request.user.role != 'service_manager' or application.job.posted_by != request.user:
+#         return redirect('job_list')  # Redirect if unauthorized access
+    
+#     # Mark candidate as selected
+#     application.is_selected = True
+#     application.save()
+
+#     # Deactivate the job once a candidate is selected
+#     application.job.is_active = False
+#     application.job.save()
+
+#     # Create a user account for the selected candidate
+#     User = get_user_model()
+#     user = User.objects.create_user(
+#         email=application.candidate_email,
+#         password=User.objects.make_random_password(),
+#         role='CANDIDATE'
+#     )
+
+#     # Redirect to the job list after selecting a candidate
+#     return redirect('manager_job_list')
+
+
+
+
+
+# @login_required
+# def select_candidate(request, application_id):
+#     application = get_object_or_404(JobApplication, id=application_id)
+    
+#     if request.user.role != 'service_manager' or application.job.posted_by != request.user:
+#         return redirect('job_list')  # Only the mechanic who posted the job can select a candidate
+
+#     application.is_selected = True
+#     application.save()
+
+#     # Deactivate the job post once a candidate is selected
+#     application.job.is_active = False
+#     application.job.save()
+
+#     # Create user account for the selected candidate
+#     User = get_user_model()
+#     user = User.objects.create_user(
+#         email=application.candidate_email,
+#         password=User.objects.make_random_password(),
+#         role='CANDIDATE'  # Candidate role
+#     )
+
+
+
+
+#     # Send email to the candidate
+#     send_mail(
+#         'Job Application Accepted',
+#         f'You have been selected for the job {application.job.title}. '
+#         f'Login with your email: {application.candidate_email}.',
+#         'noreply@jobportal.com',
+#         [application.candidate_email],
+#         fail_silently=False
+#     )
+
+#     return redirect('job_applications_list', job_id=application.job.id)
+
+# from django.conf import settings
+# def sendit():
+#     subject = 'Welcome To AutoMech' 
+#     message = 'dsafsrdgdsghsdhgfshjfgsj' 
+#     from_email = settings.DEFAULT_FROM_EMAIL 
+#     recipient_list = ['shejinvj274@gmail.com'] 
+#     send_mail(subject, from_email, recipient_list,message)

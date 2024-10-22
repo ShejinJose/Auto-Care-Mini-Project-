@@ -336,3 +336,36 @@ class Mechanic(models.Model):
     
 
 
+class CustomerComplaint(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='complaints')
+    complaint = models.TextField()
+
+    def __str__(self):
+        return f"Complaint from {self.user.details.name} ({self.user.email})"
+    
+#/////////////////////  Job portal ////////////////////////
+
+from django.db import models
+from django.contrib.auth import get_user_model
+
+class JobPost(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    company_name = models.CharField(max_length=255)
+    posted_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)  # Mechanics post the job
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+class JobApplication(models.Model):
+    job = models.ForeignKey(JobPost, on_delete=models.CASCADE)
+    candidate_name = models.CharField(max_length=255)
+    candidate_email = models.EmailField()
+    resume = models.FileField(upload_to='resumes/')
+    applied_at = models.DateTimeField(auto_now_add=True)
+    is_selected = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.candidate_name} - {self.job.title}"

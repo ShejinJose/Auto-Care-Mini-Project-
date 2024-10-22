@@ -4,269 +4,297 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --sidebar-width: 280px;
+        }
+        
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            color: #495057;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f6fa;
+            overflow-x: hidden;
         }
+
+        /* Sidebar Styles */
         .sidebar {
-            width: 260px;
-            background-color: #343a40;
-            color: #adb5bd;
-            display: flex;
-            flex-direction: column;
-            
-        }
-        .sidebar h4 {
-            font-size: 1.5rem;
-            text-align: center;
-            color: #ffffff;
-        }
-        .sidebar a {
-            color: #98c0e8;
-            padding: 12px 15px;
-            margin: 8px 0;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            display: block;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
             transition: all 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
         }
+
+        .sidebar h4 {
+            color: #fff;
+            padding: 1.5rem 1rem;
+            font-size: 1.4rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar a {
+            color: rgba(255,255,255,0.8);
+            padding: 0.8rem 1.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            margin: 0.2rem 0.8rem;
+            border-radius: 8px;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
         .sidebar a:hover, .sidebar a.active {
-            background-color: #495057;
-            color: #ffffff;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
             transform: translateX(5px);
         }
+
+        /* Content Area Styles */
         .content {
-            flex: 1;
+            margin-left: var(--sidebar-width);
             padding: 20px;
-            overflow-y: auto;
-            background-color: #f8f9fa;
+            min-height: 100vh;
+            background-color: #f5f6fa;
         }
+
+        /* Navbar Styles */
         .navbar {
-            background-color: #94a8bd;
-            color: #9c2c2c;
-            padding: 1rem;
-            border-bottom: 1px solid #0b3661;
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
         }
+
         .navbar-brand {
-            color: #9e5656 !important;
             font-weight: 700;
+            color: #1e3c72 !important;
+            font-size: 1.5rem;
         }
-        .card {
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
+
+        /* Welcome Section */
+        .welcome-section {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(204, 42, 42, 0.1);
+
+        /* Table Styles */
+        .table-container {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .card-header {
-            font-weight: 600;
-            font-size: 1.1rem;
-            background-color: transparent;
-            border-bottom: none;
-            color: #343a40;
+
+        .table {
+            margin-bottom: 0;
         }
-        .card-body {
-            color: #495057;
-        }
-        .btn-light {
-            background-color: #ffffff;
-            color: #343a40;
-            border: 1px solid #ced4da;
-        }
-        .btn-light:hover {
+
+        .table th {
             background-color: #f8f9fa;
-            color: #343a40;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
         }
-        .list-group-item {
-            border: none;
-            padding: 0.75rem 1rem;
-            color: #495057;
-            background-color: #ffffff;
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
         }
-        .list-group-item:first-child {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.85rem;
         }
-        .list-group-item:last-child {
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-        }
-        .modal-content {
-            border-radius: 8px;
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .content {
+                margin-left: 0;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <h4>Admin Dashboard</h4>
-        <a href="#dashboard" class="active">Dashboard</a>
-        <a href="{% url 'customerdetails' %}">Manage Customers</a>
-        <a href="{% url 'service_manager_list' %}">Manage Service Managers</a>
-        <a href="{% url 'mechanic_list' %}">Manage Mechanics</a>
-        <a href="{%url 'service_category_list'%}">Manage Services</a>
-        <a href="{%url 'brands'%}"> Service Price</a>
-        <a href="{%url 'manage_vehicle'%}">Manage vehicle</a>
-        <a href="{%url 'slot_list'%}">Manage Slot</a>
+        <h4 class="text-center">Admin Dashboard</h4>
+        <a href="#dashboard" class="active">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="{% url 'customerdetails' %}">
+            <i class="fas fa-users"></i> Manage Customers
+        </a>
+        <a href="{% url 'service_manager_list' %}">
+            <i class="fas fa-user-tie"></i> Service Managers
+        </a>
+        <a href="{% url 'mechanic_list' %}">
+            <i class="fas fa-wrench"></i> Mechanics
+        </a>
+        <a href="{%url 'service_category_list'%}">
+            <i class="fas fa-cogs"></i> Manage Services
+        </a>
+        <a href="{%url 'brands'%}">
+            <i class="fas fa-tag"></i> Service Price
+        </a>
+        <a href="{%url 'manage_vehicle'%}">
+            <i class="fas fa-car"></i> Manage Vehicle
+        </a>
+        <a href="{%url 'slot_list'%}">
+            <i class="fas fa-clock"></i> Manage Slot
+        </a>
+        <a href="{%url 'complaint_list'%}">
+            <i class="fas fa-comment-alt"></i> Complaint Box
+        </a>
     </div>
 
     <!-- Content Area -->
     <div class="content">
         <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-dark">
-            <a class="navbar-brand" href="{% url 'home' %}">Auto Care</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Profile</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                    </li>
-                </ul>
+        <nav class="navbar navbar-expand-lg navbar-light rounded">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <i class="fas fa-car-mechanic me-2"></i>Auto Care
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-user me-1"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </nav>
 
-        <!-- Dashboard Content -->
-        <div class="container-fluid mt-4">
-            <div class="row">
-                <!-- Dashboard Overview -->
-                <div class="col-md-12">
-                    <h2 class="mb-4">Welcome, Admin</h2>
-                    <p>This is your dashboard where you can manage the auto workshop.</p>
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h2 class="mb-3">Welcome, Admin</h2>
+            <p class="text-muted mb-0">This is your dashboard where you can manage the auto workshop.</p>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">All Orders</h3>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-download me-1"></i> Export
+                    </button>
                 </div>
             </div>
-
-            <!-- Section Cards -->
-            <div class="row mt-4">
-                <div class="col-md-3">
-                    <div class="card text-white bg-primary mb-4">
-                        <div class="card-header">Customers</div>
-                        <div class="card-body">
-                            <h5 class="card-title">Manage Customers</h5>
-                            <p class="card-text">View, add, or remove customers.</p>
-                            <a href="{% url 'customerdetails' %}" class="btn btn-light">Go to Customers</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-white bg-success mb-4"> 
-                        <div class="card-header">Service Manager</div>
-                        <div class="card-body">
-                            <h5 class="card-title">Manage Service Manager</h5>
-                            <p class="card-text">View and manage Service Manager.</p>
-                            <a href="{% url 'service_manager_list' %}" class="btn btn-light">Go to Service Manager</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-white bg-warning mb-4">
-                        <div class="card-header">Mechanics</div>
-                        <div class="card-body">
-                            <h5 class="card-title">Manage Mechanics</h5>
-                            <p class="card-text">View and manage Mechanics</p>
-                            <a href="{% url 'mechanic_list' %}" class="btn btn-light">Go to Mechanics</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-white bg-danger mb-4">
-                        <div class="card-header">Services</div>
-                        <div class="card-body">
-                            <h5 class="card-title">Manage Services</h5>
-                            <p class="card-text">Add and update services offered.</p>
-                            <a href="{%url 'service_category_list'%}"class="btn btn-light">Go to Services</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add Charts or Other Content Here -->
-         <!---   <div class="row mt-5">
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">Workshop Statistics</div>
-                        <div class="card-body">
-                            <canvas id="workshopChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">Recent Activity</div>
-                        <div class="card-body">
-                            <ul class="list-group">
-                                <li class="list-group-item">Customer John Doe registered.</li>
-                                <li class="list-group-item">Vehicle serviced: Toyota Camry.</li>
-                                <li class="list-group-item">Appointment booked for 15th June.</li>
-                                <li class="list-group-item">Service plan updated for customer Jane.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Slot Name</th>
+                            <th>Vehicle Details</th>
+                            <th>Service Date</th>
+                            <th>Service Types</th>
+                            <th>Order Date</th>
+                            <th>Customer Email</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <strong class="text-primary">#{{ order.order_id }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ order.allocated_slot.name }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div class="fw-bold">{{ order.vehicle.registration_number }}</div>
+                                    <div>{{ order.vehicle.vehicle_model.make.name }}</div>
+                                    <div class="text-muted">{{ order.vehicle.vehicle_model.model_name }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <i class="far fa-calendar me-1"></i>
+                                {{ order.service_date }}
+                            </td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for service in order.services.all %}
+                                    <li class="small mb-1">
+                                        <span class="fw-bold">{{ service.service_type.name }}</span>
+                                        <span class="text-success ms-1">${{ service.price }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>
+                                <i class="far fa-clock me-1"></i>
+                                {{ order.order_date }}
+                            </td>
+                            <td>
+                                <i class="far fa-envelope me-1"></i>
+                                {{ order.user.email }}
+                            </td>
+                            <td>
+                                <span class="status-badge bg-info text-white">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x mb-3 text-muted"></i>
+                                <p class="text-muted mb-0">No orders found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>      -->
+    </div>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Example Chart.js usage for the dashboard
-        var ctx = document.getElementById('workshopChart').getContext('2d');
-        var workshopChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-                datasets: [{
-                    label: 'Services Completed',
-                    data: [10, 20, 15, 30, 40, 25],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

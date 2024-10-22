@@ -2,7 +2,7 @@ from django import template
 
 register = template.Library()
 
-@register.filter(name='get_item')
+@register.filter
 def get_item(dictionary, key):
     """
     Template filter to get an item from a dictionary using its key

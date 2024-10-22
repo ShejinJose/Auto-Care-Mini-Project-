@@ -236,3 +236,101 @@ class ServicePriceForm(forms.ModelForm):
     class Meta:
         model = ServicePrice
         fields = ['price']
+
+# forms.py
+from django import forms
+from .models import CustomerComplaint
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = CustomerComplaint
+        fields = ['complaint']
+        widgets = {
+            'complaint': forms.Textarea(attrs={'placeholder': 'Enter your complaint here...'}),
+        }
+
+
+#////////////  job Portal //////////////////
+
+# forms.py
+from django import forms
+from .models import JobPost, JobApplication
+
+# class JobPostForm(forms.ModelForm):
+#     class Meta:
+#         model = JobPost
+#         fields = ['title', 'description', 'company_name']
+
+class JobPostForm(forms.ModelForm):
+    title = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter job title',
+        }),
+        help_text='Enter a clear and concise job title'
+    )
+    
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter detailed job description',
+            'rows': 5
+        }),
+        help_text='Provide comprehensive details about the role, responsibilities, and requirements'
+    )
+    
+    company_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter company name',
+        }),
+        help_text='Enter the name of your company'
+    )
+
+    class Meta:
+        model = JobPost
+        fields = ['title', 'description', 'company_name']
+
+
+# class JobApplicationForm(forms.ModelForm):
+#     class Meta:
+#         model = JobApplication
+#         fields = ['candidate_name', 'candidate_email', 'resume']
+
+from django import forms
+from django.core.validators import FileExtensionValidator
+
+class JobApplicationForm(forms.ModelForm):
+    candidate_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your full name'
+        })
+    )
+    
+    candidate_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email address'
+        })
+    )
+    
+    resume = forms.FileField(
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])],
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.doc,.docx'
+        })
+    )
+
+    class Meta:
+        model = JobApplication
+        fields = ['candidate_name', 'candidate_email', 'resume']
+    
+    def clean_resume(self):
+        resume = self.cleaned_data.get('resume')
+        if resume:
+            if resume.size > 5 * 1024 * 1024:  # 5MB limit
+                raise forms.ValidationError('File size must be no more than 5MB')
+        return resume

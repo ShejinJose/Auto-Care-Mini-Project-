@@ -17,6 +17,10 @@ urlpatterns = [
     path('price',views.price),
     path('service',views.service,name="service"),
     path('booking',views.booking,name="booking"),
+
+    path('complaints/submit/', views.receive_complaint, name='submit_complaint'),
+    path('complaints/', views.complaint_list, name='complaint_list'),
+
     
 
     #///////////////  Vehicle Select /////////////
@@ -43,6 +47,8 @@ urlpatterns = [
     #/////////////////////   Oreder Items ///////////////////////////
     path('order_confirmation/', views.order_confirmation, name='order_confirmation'),
     path('create_order/', views.create_order, name='create_order'),
+
+    path('my-orders/', views.my_orders, name='my_orders'),
 
 
 
@@ -78,6 +84,7 @@ urlpatterns = [
 
     #/////////Admin Dashboard///////////
     path('cst_admin',views.cst_admin,name="cst_admin"),
+    # path('all-orders/', views.all_orders, name='all_orders'),
     path('customerdetails',views.customerdetails,name = 'customerdetails'),
     path('delete_customer/<str:email>/',delete_customer, name='delete_customer'),
     path('service_manager_list/', service_manager_list, name='service_manager_list'),
@@ -117,9 +124,15 @@ urlpatterns = [
 
 
     #///////////////////   Mechanics ////////////////////////////////////////
-    path('mechanic',views.mechanic_dashboard,name="mechanic"),
+    # path('mechanic',views.mechanic_dashboard,name="mechanic"),
+    # path('add-junior-mechanic/<int:slot_id>/', views.add_junior_mechanic, name='add_junior_mechanic'),
+    # path('remove-junior-mechanic/<int:slot_id>/<int:junior_mechanic_id>/', views.remove_junior_mechanic, name='remove_junior_mechanic'),
+ 
+    path('mechanic-dashboard/', views.mechanic_dashboard, name='mechanic_dashboard'),
+    path('allocate_juniormechanic/', views.allocate_juniormechanic, name='allocate_juniormechanic'),
     path('add-junior-mechanic/<int:slot_id>/', views.add_junior_mechanic, name='add_junior_mechanic'),
     path('remove-junior-mechanic/<int:slot_id>/<int:junior_mechanic_id>/', views.remove_junior_mechanic, name='remove_junior_mechanic'),
+    path('update-order-status/', views.update_order_status, name='update_order_status'),
 
 
     #////////////////////// Service Categories/////////////////////////////////
@@ -143,6 +156,15 @@ urlpatterns = [
     #////////////////////   CUSTOMER PROFILE ///////////////
      path('customer_profile/', views.customer_profile, name='customer_profile'),
       path('profile/edit/', views.edit_profile, name='edit_profile'),
+
+    #///////////////  Job Portal /////////////////////////////////////
+    path('serviceManager/dashboard/post-job/', views.post_job, name='post_job'),
+    path('jobs/', views.job_list, name='job_list'),
+    path('serviceManager/dashboard/jobs/', views.manager_job_list, name='manager_job_list'),
+     path('serviceManager/dashboard/job/<int:job_id>/candidates/', views.view_candidates, name='view_candidates'),
+    path('apply-job/<int:job_id>/', views.apply_job, name='apply_job'),
+    path('serviceManager/dashboard/application/<int:application_id>/select/', views.select_candidate, name='select_candidate'),
+    # path('job-thanks/', views.apply_job, name='job_thanks'),
     
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

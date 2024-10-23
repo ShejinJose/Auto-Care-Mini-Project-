@@ -386,6 +386,8 @@ def add_to_cart(request, service_type_id):
 #         'cart_items': cart_items,
 #     })
 
+
+@login_required
 def view_cart(request):
     vehicle_id = request.session.get('selected_vehicle_id')
     vehicle = get_object_or_404(Vehicle, id=vehicle_id)

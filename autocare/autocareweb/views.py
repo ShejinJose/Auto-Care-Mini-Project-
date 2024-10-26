@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from .models import *
 from .form import *
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 def home(request):
@@ -122,6 +123,7 @@ def select_vehicle(request):
             selected_vehicle = get_object_or_404(Vehicle, id=selected_vehicle_id, user=user)
             # You can now do something with the selected vehicle, like setting it as the current vehicle in the session
             request.session['selected_vehicle_id'] = selected_vehicle.id
+            request.session['selected']=1
             return redirect('home')  # Redirect to wherever you need after selection
 
     return render(request, 'vehicle/select_vehicle.html', {'vehicles': vehicles})
@@ -176,6 +178,7 @@ def add_vehicle_number(request, variant_id):
     })
 
 #//////////////  Services For Customer //////////////////////////////
+
 def customer_service_category(request):
     service_categories = ServiceCategory.objects.all()
     return render(request, 'service/cst_service_category.html', {'service_categories': service_categories})
@@ -216,7 +219,7 @@ from .models import ServiceCategory, ServiceType, ServicePrice, Vehicle, Vehicle
 #         'vehicle_variant': vehicle_variant
 #     })
 
-
+@login_required(login_url='customerLogin')
 def customer_service_type(request, category_id):
     # Get the selected vehicle from the session
     selected_vehicle_id = request.session.get('selected_vehicle_id')
@@ -387,8 +390,10 @@ def add_to_cart(request, service_type_id):
 #     })
 
 
-@login_required
+@login_required(login_url='customerLogin')
 def view_cart(request):
+    if not request.session.get('selected'):
+        return redirect('select_vehicle')
     vehicle_id = request.session.get('selected_vehicle_id')
     vehicle = get_object_or_404(Vehicle, id=vehicle_id)
     cart_items = ServiceCart.objects.filter(vehicle=vehicle)
@@ -553,7 +558,7 @@ def create_order(request):
 
         if cart_items.exists():
             vehicle = cart_items.first().vehicle
-            order_id = str(uuid.uuid4()).replace('-', '').upper()[:12]
+            order_id = str(uuid.uuid4()).replace('-',   '').upper()[:12]
 
             try:
                 # Create the order with the selected service date
@@ -591,6 +596,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 from .models import Order, Vehicle
 
+@login_required(login_url='customerLogin')
 def my_orders(request):
     # Get the current logged-in user
     user = request.user
@@ -648,8 +654,8 @@ def location(request) :
 def cst_admin(request):
     # Retrieve all orders
     orders = Order.objects.select_related('user', 'vehicle', 'allocated_slot').prefetch_related('services').all()
-
-    return render(request, 'admin/dashboard.html', {'orders': orders})
+    slots = Slot.objects.all()
+    return render(request, 'admin/dashboard.html', {'orders': orders, 'slots': slots})
 
 
 from django.shortcuts import render
@@ -1513,7 +1519,7 @@ def delete_service_type(request, pk):
     return render(request, 'admin/service/delete_service_type.html', {'service_type': service_type})
 
 
-#//////////////////////////////    Service price ////////////////////////////////
+#////////////////////////////// Add   Service price ////////////////////////////////
 def brands(request):
     vehicle_makes = VehicleMake.objects.all()
     return render(request, 'admin/service_price/brands.html', {'vehicle_makes': vehicle_makes})
@@ -1642,7 +1648,7 @@ def edit_service_price(request, service_price_id):
     return render(request, 'admin/service_price/edit_service_price.html', {'form': form, 'service_price': service_price})
 
 
-@login_required
+@login_required(login_url='customerLogin')
 def receive_complaint(request):
     if request.method == 'POST':
         complaint_text = request.POST.get('complaint')

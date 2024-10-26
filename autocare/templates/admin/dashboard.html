@@ -139,6 +139,46 @@
                 transform: translateX(0);
             }
         }
+        .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .table-container {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    /* Animation for the refresh button */
+    .btn-outline-primary:hover i.fa-sync-alt {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
     </style>
 </head>
 <body>
@@ -206,6 +246,60 @@
         <div class="welcome-section">
             <h2 class="mb-3">Welcome, Admin</h2>
             <p class="text-muted mb-0">This is your dashboard where you can manage the auto workshop.</p>
+        </div>
+
+        <div class="table-container mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Slot Information
+                </h3>
+                <button class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-uppercase">
+                                <i class="fas fa-tag me-1"></i>Slot Name
+                            </th>
+                            <th scope="col" class="text-uppercase">
+                                <i class="fas fa-info-circle me-1"></i>Status
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot in slots %}
+                        <tr>
+                            <td class="fw-semibold">{{ slot.slotname }}</td>
+                            <td>
+                                {% if slot.get_status_display == 'Available' %}
+                                    <span class="status-badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>{{ slot.get_status_display }}
+                                    </span>
+                                {% elif slot.get_status_display == 'Occupied' %}
+                                    <span class="status-badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>{{ slot.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge bg-secondary">
+                                        <i class="fas fa-ban me-1"></i>{{ slot.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x mb-3 text-muted"></i>
+                                <p class="text-muted mb-0">No slots available.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Orders Table -->
